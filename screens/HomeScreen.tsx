@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import Card from '../components/Card';
 import PopularBrands from '../components/PopularBrands';
 import PopularPerfume from '../components/PopularPerfume';
+
 const HomeScreen: React.FC = () => {
     return (
       <View style={styles.container}>
@@ -27,12 +28,13 @@ const HomeScreen: React.FC = () => {
             />
           </View>
           <View style={styles.section}>
-            <Card
-              title="Search"
-              description="Type a perfume and see if it’s your match."
-              color="#3E7796"
-              icon="🔍"
-            />
+          <Card
+            title="Search"
+            description="Type a perfume and see if it’s your match."
+            color="#3E7796"
+            icon="🔍"
+            navigateTo="SearchScreen"
+          />
             <Card
               title="Scanner"
               description="Analyze a perfum by photo or barcode."
@@ -43,7 +45,7 @@ const HomeScreen: React.FC = () => {
           <PopularBrands />
           <PopularPerfume />
         </ScrollView>
-        {/* <BottomNavBar />  */}
+
       </View>
     );
   };

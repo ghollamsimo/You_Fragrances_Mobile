@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 
@@ -39,8 +40,8 @@ const PopularPerfume: React.FC = () => {
       subtitle: 'Stronger with you intensely', 
       rating: '100/100' 
     },
-   
   ];
+  const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
@@ -52,16 +53,27 @@ const PopularPerfume: React.FC = () => {
         </TouchableOpacity>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {products.map((product) => (
-          <View key={product.id} style={styles.productCard}>
-            <Image source={{ uri: product.image }} style={styles.image} />
-            <View style={styles.cardContent}>
-              <Text style={styles.ratingBadge}>Rating: {product.rating}</Text>
-              <Text style={styles.cardTitle}>{product.title}</Text>
-              <Text style={styles.cardSubtitle}>{product.subtitle}</Text>
-            </View>
-          </View>
-        ))}
+        {products.length === 0 ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 16 }}>No Perfumes Found</Text>
+        </View>
+        
+        ) : (
+          products.map((product) => (
+            <TouchableOpacity
+              key={product.id}
+              style={styles.productCard}
+              onPress={() => navigation.navigate('PerfumeDetails', { perfume: product })}
+            >
+              <Image source={{ uri: product.image }} style={styles.image} />
+              <View style={styles.cardContent}>
+                <Text style={styles.ratingBadge}>Rating: {product.rating}</Text>
+                <Text style={styles.cardTitle}>{product.title}</Text>
+                <Text style={styles.cardSubtitle}>{product.subtitle}</Text>
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
     </View>
   );
@@ -93,7 +105,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderColor: '#E8E9EB',
     borderWidth: 1,
-  
   },
   image: {
     padding: 10,
@@ -101,7 +112,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 170,
     resizeMode: 'cover',
-    borderBottomColor: "#E8E9EB",
+    borderBottomColor: '#E8E9EB',
     borderBottomWidth: 1,
   },
   cardContent: {
@@ -109,7 +120,6 @@ const styles = StyleSheet.create({
   },
   ratingBadge: {
     backgroundColor: '#3E7796',
-    // padding: ,
     color: '#FFFFFF',
     borderRadius: 10,
     paddingHorizontal: 8,
