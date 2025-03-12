@@ -1,20 +1,27 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Platform } from 'react-native';
-const Header = () => {
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { ProModal } from "../modals/ProModal";
+
+const Header = ({ title, avatarUrl, showProBadge = false }: any) => {
+  const [proModal, setProModal] = useState(false);
+
   return (
-    <View style={styles.container}>
-      <View style={styles.left_bar}>
-        <Image
-          source={{uri: 'https://static.wikia.nocookie.net/gorillatag/images/3/33/SnowOwlMaskSprite.png/revision/latest/thumbnail/width/360/height/450?cb=20230127222407'}}
-          style={styles.avatar}
-        />
-        <Text style={styles.greeting}>Hi, Med Ghollam </Text>
+      <View style={styles.container}>
+        <View style={styles.leftBar}>
+          {avatarUrl && (
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+          )}
+          <Text style={styles.greeting}>{title}</Text>
+        </View>
+
+        {showProBadge && (
+            <TouchableOpacity onPress={() => setProModal(true)} style={styles.proBadge}>
+              <Text style={styles.proText}>PRO</Text>
+            </TouchableOpacity>
+        )}
+
+        {proModal && <ProModal setModalVisible={setProModal} modalVisible={proModal} />}
       </View>
-      <View></View>
-      <TouchableOpacity style={styles.proBadge}>
-        <Text style={styles.proText}>PRO</Text>
-      </TouchableOpacity>
-    </View>
   );
 };
 
@@ -24,16 +31,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 10,
-    backgroundColor:'#f4f4f4',
     marginTop: 30,
     borderBottomWidth: 0.5,
     borderBottomColor: '#d9dadb',
-    filter: 'blur(50)',
   },
-  left_bar: {
+  leftBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20,
+    gap: 10,
   },
   avatar: {
     width: 50,
@@ -43,8 +48,8 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 18,
     fontFamily: 'Roboto',
+    fontWeight: 'bold',
   },
-  
   proBadge: {
     backgroundColor: '#3E7796',
     paddingHorizontal: 10,

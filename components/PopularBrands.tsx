@@ -1,108 +1,135 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import type React from "react"
+import {useState} from "react"
+import {
+    View,
+    Text,
+    StyleSheet,
+    ScrollView,
+    Image,
+    TouchableOpacity,
+    Modal,
+    Dimensions,
+    SafeAreaView,
+} from "react-native"
+import {X} from "lucide-react-native"
+import {BrandModal} from "../modals/BrandModal";
 
-interface Brands {
-  id: number;
-  image: string;
-  title: string;
-  description : string;
+const PopularBrands = ({brands}: any) => {
+    const [modalVisible, setModalVisible] = useState(false)
+    const [selectedBrand, setSelectedBrand] = useState<null>(null)
+    const openModal = (brand) => {
+        setSelectedBrand(brand)
+        setModalVisible(true)
+    }
+
+    const closeModal = () => {
+        setModalVisible(false)
+        setSelectedBrand(null)
+    }
+
+    return (
+        <View style={styles.container}>
+            <View style={styles.popular_section}>
+                <Text style={styles.title}>Popular Brands</Text>
+
+                <TouchableOpacity style={styles.proBadge}>
+                    <Text style={styles.proBadge_text}>See All</Text>
+                </TouchableOpacity>
+            </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {brands.map((brand) => (
+                    <TouchableOpacity
+                        key={brand._id}
+                        style={styles.productCard}
+                        onPress={() => openModal(brand)}
+                        activeOpacity={0.8}
+                    >
+                        <View style={styles.imageContainer}>
+                            <Image
+                                source={{ uri: brand.image.replace('127.0.0.1', '192.168.1.116') }}
+                                style={styles.images}
+                            />
+                        </View>
+                        <View style={styles.cardContent}>
+                            <Text style={styles.cardTitle}>{brand.name}</Text>
+                            <Text style={styles.cardSubtitle} numberOfLines={2}>
+                                {brand.description}
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
+                ))}
+            </ScrollView>
+            {modalVisible &&
+                <BrandModal modalVisible={modalVisible} closeModal={setModalVisible} selectedBrand={selectedBrand}/>}
+        </View>
+    )
 }
 
-const PopularBrands: React.FC = () => {
-  const products: Brands[] = [
-    { id: 1, image: 'https://perfumedefrance.com/cdn/shop/collections/zoologist_1024x1024.jpg?v=1639834594', title: 'Zoologist' , description: 'Here at Zoologist Perfumes, our fascination with animals is boundless. Their habitats, behaviours and looks; their similarities and differences with humans, even their smells give us a lot to ponder. Their cunning inspires us, their agility resonates with our primal instincts, and their cuteness makes us giggle'},
-    { id: 2, image: 'https://logo-marque.com/wp-content/uploads/2021/01/Jean-Paul-Gaultier-Logo.png' ,  title: 'Jean Paul Gaultier', description: 'Here at Zoologist Perfumes, our fascination with animals is boundless. Their habitats, behaviours and looks; their similarities and differences with humans, even their smells give us a lot to ponder. Their cunning inspires us, their agility resonates with our primal instincts, and their cuteness makes us giggle'},
-    { id: 3, image: 'https://logo-marque.com/wp-content/uploads/2020/11/Giorgio-Armani-Logo.png' ,  title: 'Giorgio Armani', description: 'Here at Zoologist Perfumes, our fascination with animals is boundless. Their habitats, behaviours and looks; their similarities and differences with humans, even their smells give us a lot to ponder. Their cunning inspires us, their agility resonates with our primal instincts, and their cuteness makes us giggle'},
-    { id: 4, image: 'https://www.luxeperfumeoils.lk/wp-content/uploads/2023/01/LouisVuitton.png' ,  title: 'Louis Vuitton', description: 'Here at Zoologist Perfumes, our fascination with animals is boundless. Their habitats, behaviours and looks; their similarities and differences with humans, even their smells give us a lot to ponder. Their cunning inspires us, their agility resonates with our primal instincts, and their cuteness makes us giggle'},
-  ];
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.popular_section}>
-        <Text style={styles.title}>Popular Brands</Text>
-
-        <TouchableOpacity style={styles.proBadge}>
-          <Text style={styles.proBadge_text}>See All</Text>
-        </TouchableOpacity>
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {products.map((product) => (
-          <View key={product.id} style={styles.productCard}>
-            <View style={styles.imageContainer}>
-              <Image source={{ uri: product.image }} style={styles.image} />
-            </View>
-            <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{product.title}</Text>
-                <Text style={styles.cardSubtitle} numberOfLines={2}>{product.description}</Text>
-            </View> 
-          </View>
-        ))}
-      </ScrollView>
-    </View>
-  );
-};
 
 const styles = StyleSheet.create({
-  container: {
-    // marginVertical: 20,
-  },
-  popular_section: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 10,
-  },
+    container: {
+        // marginVertical: 20,
+    },
+    popular_section: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: 10,
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 10,
+    },
+    productCard: {
+        width: 300,
+        borderRadius: 10,
+        backgroundColor: "#FFF",
+        marginHorizontal: 10,
+        elevation: 2,
+        overflow: "hidden",
+        borderColor: "#E8E9EB",
+        borderWidth: 1,
+        height: 250,
+    },
+    imageContainer: {
+        flex: 1,
+    },
+    images: {
+        width: "100%",
+        height: "100%",
+        borderRadius: 10,
+        padding: 10,
+        resizeMode: "cover",
+        borderBottomColor: "#E8E9EB",
+        borderBottomWidth: 1,
+    },
+    cardContent: {
+        padding: 10,
+    },
+    cardTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        color: "#333",
+        marginBottom: 10,
+    },
+    cardSubtitle: {
+        fontSize: 12,
+        color: "#666",
+    },
+    proBadge_text: {
+        color: "#FFFFFF",
+    },
+    proBadge: {
+        backgroundColor: "#3E7796",
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 20,
+    },
 
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  productCard: {
-    width: 300,
-    borderRadius: 10,
-    backgroundColor: '#FFF',
-    marginHorizontal: 10,
-    elevation: 2,
-    overflow: 'hidden',
-    borderColor: '#E8E9EB',
-    borderWidth: 1,
-    height: 250,
-  },
-  imageContainer: {
-    flex: 1,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 10,
-    padding: 10, 
-    resizeMode: 'cover',
-    borderBottomColor: "#E8E9EB",
-    borderBottomWidth: 1,
-  },
-  cardContent: {
-    padding: 10,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-  },
-  cardSubtitle: {
-    fontSize: 12,
-    color: '#666',
-  },
-  proBadge_text: {
-    color: '#FFFFFF',
-  },
-  proBadge: {
-    backgroundColor: '#3E7796',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-  },
-});
 
-export default PopularBrands;
+})
+
+export default PopularBrands
+

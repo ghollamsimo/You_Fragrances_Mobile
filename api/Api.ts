@@ -1,10 +1,10 @@
 import axios from "axios";
-import { config } from "../helpers/Config";
+import {config} from "../helpers/Config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const Api = () => {
-    const http = axios.create(config());
-    return {
-        http
-    }
+    const token = AsyncStorage.getItem("token");
+    return axios.create(config(token));
 }
 
 export default Api

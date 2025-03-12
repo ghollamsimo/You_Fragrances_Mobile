@@ -10,11 +10,13 @@ import ScanScreen from './screens/ScanScreen';
 import SearchScreen from './screens/SearchScreen'; 
 import PerfumeDetails from './screens/PerfumeDetails';
 import ProfileScreen from './screens/ProfileScreen';
+import knowledgeScreen from './screens/knowledgePerfumeScreen';
+import ReviewScreen from "./screens/ReviewScreen";
+import LoginScreen from "./screens/auth/LoginScreen";
+import HistoryScreen from "./screens/HistoryScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-
-const HistoryScreen = () => <View><Text>History</Text></View>;
 
 const CustomTabBarButton = ({ children, onPress }: any) => (
   <TouchableOpacity
@@ -94,6 +96,9 @@ export default function App() {
         <Stack.Screen name="Main" component={TabNavigator} />
         <Stack.Screen name="SearchScreen" component={SearchScreen} />
         <Stack.Screen name="PerfumeDetails" component={PerfumeDetails} />
+        <Stack.Screen name="knowledgeScreen" component={knowledgeScreen} />
+        <Stack.Screen name="ReviewScreen" component={ReviewScreen} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -2,45 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 
-interface Brands {
-  id: number;
-  image: string;
-  title: string;
-  subtitle: string;
-  rating: string;
-}
-
-const PopularPerfume: React.FC = () => {
-  const products: Brands[] = [
-    { 
-      id: 1, 
-      image: 'https://pimages.parfumo.de/720/115431_img-4376-zoologist-tyrannosaurus_rex_720.jpg',
-      title: 'zoologist', 
-      subtitle: 'Tyrannosaurus Rex parfumo', 
-      rating: '92/100' 
-    },
-    { 
-      id: 4, 
-      image: 'https://hrd-live.cdn.scayle.cloud/images/b1fd7681abe26f96dd97fa3da2d0effb.jpg?brightness=1&width=922&height=1230&quality=75&bg=ffffff', 
-      title: 'jean paul gaultier', 
-      subtitle: 'Le male elixir', 
-      rating: '100/100' 
-    },
-    { 
-      id: 2, 
-      image: 'https://pimages.parfumo.de/720/130942_img-9622-zoologist-squid_720.jpg', 
-      title: 'zoologist', 
-      subtitle: 'Squid', 
-      rating: '92/100' 
-    },
-    { 
-      id: 3, 
-      image: 'https://marionnaud.ma/cdn/shop/products/Capture_d_ecran_2022-01-18_a_12.07.10_1080x.png?v=1709896668', 
-      title: 'Armani', 
-      subtitle: 'Stronger with you intensely', 
-      rating: '100/100' 
-    },
-  ];
+const PopularPerfume = ({perfumes}) => {
   const navigation = useNavigation();
 
   return (
@@ -53,23 +15,23 @@ const PopularPerfume: React.FC = () => {
         </TouchableOpacity>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {products.length === 0 ? (
+        {perfumes.length === 0 ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ fontSize: 16 }}>No Perfumes Found</Text>
         </View>
         
         ) : (
-          products.map((product) => (
+          perfumes.slice(0, 5).map((perfume) => (
             <TouchableOpacity
-              key={product.id}
+              key={perfume._id}
               style={styles.productCard}
-              onPress={() => navigation.navigate('PerfumeDetails', { perfume: product })}
+              onPress={() => navigation.navigate('PerfumeDetails', { perfume: perfume })}
             >
-              <Image source={{ uri: product.image }} style={styles.image} />
+              <Image source={{ uri: perfume.image.replace('127.0.0.1', '192.168.1.116') }} style={styles.image} />
               <View style={styles.cardContent}>
-                <Text style={styles.ratingBadge}>Rating: {product.rating}</Text>
-                <Text style={styles.cardTitle}>{product.title}</Text>
-                <Text style={styles.cardSubtitle}>{product.subtitle}</Text>
+                <Text style={styles.ratingBadge}>Rating: {perfume.averageRating}</Text>
+                <Text style={styles.cardTitle}>{perfume.name}</Text>
+                <Text style={styles.cardSubtitle}>{perfume.brand.name}</Text>
               </View>
             </TouchableOpacity>
           ))
@@ -112,8 +74,8 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 170,
     resizeMode: 'cover',
-    borderBottomColor: '#E8E9EB',
-    borderBottomWidth: 1,
+    // borderBottomColor: '#E8E9EB',
+    // borderBottomWidth: 1,
   },
   cardContent: {
     padding: 10,

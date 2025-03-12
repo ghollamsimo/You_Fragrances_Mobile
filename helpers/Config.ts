@@ -1,13 +1,9 @@
-import getAsyncStorageValue from './Storage'
-
-export const config = () => {
-    const token = getAsyncStorageValue('ACCESS_TOKEN')
-    const axiosConfig = {
-        baseURL: 'http://localhost:8080/',
+export const config = (token: any | null = null) => {
+    return {
+        baseURL: 'http://192.168.1.116:8080/',
         headers: {
-            'content-type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-        }
+            'Content-Type': 'application/json',
+            ...(token ? {'Authorization': `Bearer ${token}`} : {}),
+        },
     }
-    return axiosConfig
 }
