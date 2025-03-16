@@ -20,6 +20,8 @@
     "axios": "^1.7.9",
     "expo": "~52.0.27",
     "expo-app-loading": "^2.1.1",
+    "expo-blur": "^14.0.3",
+    "expo-camera": "^16.0.18",
     "expo-font": "~13.0.3",
     "expo-image-picker": "~16.0.6",
     "expo-linear-gradient": "^14.0.2",

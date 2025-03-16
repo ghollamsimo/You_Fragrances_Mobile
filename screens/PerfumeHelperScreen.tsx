@@ -12,7 +12,8 @@ import { nanoid } from "@reduxjs/toolkit";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const PerfumeHelperScreen: React.FC = () => {
-  const [token, setToken] = useState<string | null>(null);  const dispatch = useDispatch<AppDispatch>();
+  const [token, setToken] = useState<string | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
   const chatbotMessages = useSelector((state: RootState) => state.chat.chatbotMessages);
   const loading = useSelector((state: RootState) => state.chat.loading);
   const [input, setInput] = useState("");
@@ -72,14 +73,14 @@ const PerfumeHelperScreen: React.FC = () => {
             <View style={styles.inputContainer}>
               <TouchableOpacity onPress={handleInputPress} activeOpacity={1}>
                 <TextInput
-                    style={[styles.input, !token && { backgroundColor: '#f0f0f0' }]} // Grise l'input si désactivé
+                    style={[styles.input, !token && { backgroundColor: '#f0f0f0' }]}
                     placeholder="Type your question here"
                     placeholderTextColor="#999"
                     value={input}
                     onChangeText={setInput}
                     onSubmitEditing={handleSendMessage}
                     editable={!!token}
-                    pointerEvents={!token ? "none" : "auto"} // Bloque l'édition si pas de token
+                    pointerEvents={!token ? "none" : "auto"}
                 />
               </TouchableOpacity>
 

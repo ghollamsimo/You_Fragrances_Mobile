@@ -1,82 +1,77 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import { View, Text, Image, StyleSheet, ScrollView } from "react-native";
 import PerfumeNavbar from "../components/PerfumeNavbar";
 import UserReviewSection from "../components/UserReviewSection";
 import Notes from "../components/Notes(Ingredients)";
-import {AppDispatch} from "../redux/Store";
-import {useDispatch} from "react-redux";
-import {setSelectedPerfume} from "../redux/slices/PerfumeSlice";
+import { useDispatch } from "react-redux";
+import { useRoute } from "@react-navigation/native";
+import { AppDispatch } from "../redux/Store";
+import { setSelectedPerfume } from "../redux/slices/PerfumeSlice";
 
-const PerfumeDetails: React.FC = ({ route }) => {
-  const { perfume } = route.params;
+const PerfumeDetails: React.FC = () => {
+  const route = useRoute();
   const dispatch = useDispatch<AppDispatch>();
+
+  const perfume = route.params?.perfume;
+
   useEffect(() => {
-    dispatch(setSelectedPerfume(perfume))
-    console.log('tick or treat' , setSelectedPerfume(perfume))
+    if (perfume) {
+      dispatch(setSelectedPerfume(perfume));
+    }
   }, [dispatch, perfume]);
+
+  if (!perfume) {
+    return (
+        <View style={styles.centeredContainer}>
+          <Text style={styles.errorText}>Perfume not found</Text>
+        </View>
+    );
+  }
+
   return (
       <>
-        <PerfumeNavbar />
+        <PerfumeNavbar perfumeId={perfume._id} />
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           <View style={styles.contentContainer}>
             <Image
-                style={{
-                  borderTopLeftRadius: 15,
-                  borderTopRightRadius: 15,
-                  resizeMode: "center",
-                }}
-                source={{ uri: perfume.image.replace('127.0.0.1', '192.168.1.116') }}
-                width={200}
-                height={220}
+                style={styles.image}
+                source={{ uri: perfume.image?.replace("127.0.0.1", "192.168.1.116") }}
             />
+
             <View style={styles.rating}>
-              <Text style={{ color: "white", fontSize: 15, fontWeight: "700" }}>
-                Rating: {perfume.averageRating}
-              </Text>
+              <Text style={styles.ratingText}>Rating: {perfume.averageRating ?? "N/A"}</Text>
             </View>
-            <Text style={{ fontSize: 18, fontWeight: "800", margin: 10 }}>
-              {perfume.name}
-            </Text>
-            <Text style={styles.bottomTitle}>{perfume.brand.name}</Text>
+
+            <Text style={styles.title}>{perfume.name}</Text>
+            <Text style={styles.brandName}>{perfume.brand?.name ?? "Unknown Brand"}</Text>
           </View>
 
           <View style={styles.specsContainer}>
             <Text style={styles.sectionTitle}>Specifications</Text>
             <View style={styles.specsCard}>
-              <View style={styles.specItem}>
-                <Text style={styles.specLabel}>Target Audience</Text>
-                <Text style={styles.specValue}>
-                  {perfume.TargetAudience}
-                </Text>
-              </View>
-
-              <View style={styles.specItem}>
-                <Text style={styles.specLabel}>Volume</Text>
-                <Text style={styles.specValue}>
-                  {perfume.Volume}
-                </Text>
-              </View>
-
-              <View style={styles.specItem}>
-                <Text style={styles.specLabel}>Concentration</Text>
-                <Text style={styles.specValue}>
-                  {perfume.Concentration}
-                </Text>
-              </View>
-
-              <View style={styles.specItem}>
-                <Text style={styles.specLabel}>Sillage</Text>
-                <Text style={styles.specValue}>
-                  {perfume.sillage}
-                </Text>
-              </View>
+              {[
+                { label: "Target Audience", value: perfume.TargetAudience ?? "Not specified" },
+                { label: "Volume", value: perfume.Volume ?? "N/A" },
+                { label: "Concentration", value: perfume.Concentration ?? "N/A" },
+                { label: "Sillage", value: perfume.sillage ?? "N/A" },
+              ].map((spec, index) => (
+                  <View key={index} style={styles.specItem}>
+                    <Text style={styles.specLabel}>{spec.label}</Text>
+                    <Text style={styles.specValue}>{spec.value}</Text>
+                  </View>
+              ))}
             </View>
           </View>
 
-          <View style={{paddingVertical: 20,}}>
-            <UserReviewSection averageRating={perfume.averageRating}/>
+          <View style={styles.reviewSection}>
+            <UserReviewSection averageRating={perfume.averageRating} reviews={perfume.reviews ?? []} />
           </View>
-          <Notes/>
+
+          <Notes
+              topNotes={perfume.topNotes ?? []}
+              middleNotes={perfume.middleNotes ?? []}
+              baseNotes={perfume.baseNotes ?? []}
+          />
         </ScrollView>
       </>
   );
@@ -85,48 +80,67 @@ const PerfumeDetails: React.FC = ({ route }) => {
 export default PerfumeDetails;
 
 const styles = StyleSheet.create({
-  container: {},
-  contentContainer:{
-    backgroundColor: '#F5F5F5',
-    paddingHorizontal: 46,
-    paddingVertical:40,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderBottomRightRadius:30,
-    borderBottomLeftRadius:30,
-    borderBottomColor: '#DEDEDE',
+  centeredContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "red",
+  },
+  scrollViewContent: {
+    paddingBottom: 20,
+  },
+  contentContainer: {
+    backgroundColor: "#F5F5F5",
+    padding: 40,
+    alignItems: "center",
+    borderBottomRightRadius: 30,
+    borderBottomLeftRadius: 30,
     borderBottomWidth: 1,
-    borderEndWidth: 1,
-    borderEndColor: '#DEDEDE',
-    borderStartWidth: 1,
-    borderStartColor: '#DEDEDE',
+    borderBottomColor: "#DEDEDE",
+  },
+  image: {
+    width: 200,
+    height: 220,
+    resizeMode: "cover",
+    borderRadius: 15,
   },
   rating: {
     backgroundColor: "#3E7796",
     paddingVertical: 10,
     paddingHorizontal: 43,
-    margin: 5,
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
+    marginTop: 10,
   },
-  bottomTitle: {
-    position: "absolute",
-    bottom: 0,
-    margin: 17,
+  ratingText: {
+    color: "white",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "800",
+    marginVertical: 10,
+  },
+  brandName: {
     fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
+    color: "#666",
   },
   specsContainer: {
     marginHorizontal: 20,
     marginVertical: 15,
     borderWidth: 2,
-    borderColor:'#3E7796',
+    borderColor: "#3E7796",
     paddingVertical: 20,
     borderRadius: 20,
     paddingHorizontal: 15,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   sectionTitle: {
     fontSize: 18,
@@ -138,19 +152,22 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   specItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#DEDEDE',
+    borderBottomColor: "#DEDEDE",
   },
   specLabel: {
     fontSize: 15,
     fontWeight: "600",
-    color: '#3E7796',
+    color: "#3E7796",
   },
   specValue: {
     fontSize: 15,
     fontWeight: "500",
-  }
+  },
+  reviewSection: {
+    paddingVertical: 20,
+  },
 });

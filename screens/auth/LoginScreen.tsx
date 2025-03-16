@@ -9,7 +9,9 @@ import {
     Pressable,
     Modal,
     SafeAreaView,
-    ScrollView,
+    Keyboard,
+    ScrollView,KeyboardAvoidingView,
+    TouchableWithoutFeedback,
     Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -18,31 +20,31 @@ import {login, register} from "../../redux/slices/AuthSlice";
 import {useDispatch} from "react-redux";
 import {AppDispatch} from "../../redux/Store";
 import RNPickerSelect from 'react-native-picker-select';
-import { ChevronDown } from 'react-native-feather';
-import AsyncStorage from "@react-native-async-storage/async-storage"; // If you have this package, or use any other icon
+
 
 const LoginScreen = ({ modalVisible, setModalVisible }) => {
     const dispatch = useDispatch<AppDispatch>()
     const [activeTab, setActiveTab] = useState('login');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [loginEmail, setLoginEmail] = useState('');
+    const [signupEmail, setSignupEmail] = useState('');
+    const [loginPassword, setLoginPassword] = useState('');
+    const [signupPassword, setSignupPassword] = useState('');
     const [name, setName] = useState('');
     const [image, setImage] = useState(null);
-    const [gender, setGender] = useState('man');
+    const [gender, setGender] = useState('Male');
     const [role, setRole] = useState('client');
     const [showPassword, setShowPassword] = useState(false);
     const navigation = useNavigation();
 
     const handleLogin = async () => {
         const data = {
-            email: email,
-            password: password,
+            email: loginEmail,
+            password: loginPassword,
         };
         try {
             const user = await dispatch(login(data));
 
             if (user) {
-                await AsyncStorage.setItem('token', user?.token);
                 navigation.navigate("Main");
                 setModalVisible(false);
             } else {
@@ -54,37 +56,31 @@ const LoginScreen = ({ modalVisible, setModalVisible }) => {
     };
 
     const handleSignUp = async () => {
-        console.log('Sign up with:', name, email, password, image);
-
         const formData = new FormData();
+        formData.append('email', signupEmail);
+        formData.append('password', signupPassword);
         formData.append('name', name);
-        formData.append('email', email);
-        formData.append('password', password);
         formData.append('role', role);
         formData.append('gender', gender);
 
         if (image) {
-            const filename = image.split('/').pop();
-            const match = /\.(\w+)$/.exec(filename);
-            const ext = match ? match[1] : 'jpg';
-            const type = `image/${ext}`;
-
-            formData.append('image', {
+            formData.append("image", {
                 uri: image,
-                name: filename,
-                type: type,
+                name: "user.jpg",
+                type: "image/jpeg",
             });
         }
 
         try {
             const user = await dispatch(register(formData));
             if (user) {
-                navigation.navigate("Profile");
+                alert("Registration successful! You can now log in.");
+                setActiveTab("login");
             } else {
-                alert('Registration failed');
+                alert("Registration failed");
             }
         } catch (error) {
-            console.error('Registration failed:', error);
+            console.error("Registration failed:", error);
         }
     };
 
@@ -139,12 +135,10 @@ const LoginScreen = ({ modalVisible, setModalVisible }) => {
             >
                 <View style={styles.modalContainer}>
                     <SafeAreaView style={styles.modalContent}>
-                        <ScrollView contentContainerStyle={styles.scrollViewContent}>
                             <View style={styles.header}>
-                                <Text style={styles.logo}>Warehouse Management</Text>
-                                <Text style={styles.title}>Welcome to Warehouse</Text>
+                                <Text style={styles.title}>Welcome to You Fragrances</Text>
                                 <Text style={styles.subtitle}>
-                                    Sign up or login below to manage your warehouse
+                                    Sign up or login below to see the best perfumes
                                 </Text>
                             </View>
                             <View style={styles.tabs}>
@@ -163,97 +157,136 @@ const LoginScreen = ({ modalVisible, setModalVisible }) => {
                             </View>
 
                             {activeTab === 'login' ? (
-                                <>
-                                    <TouchableOpacity style={styles.socialButton}>
-                                        <Text style={styles.socialButtonText}>Login with Apple</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.socialButton}>
-                                        <Text style={styles.socialButtonText}>Login with Google</Text>
-                                    </TouchableOpacity>
-                                    <Text style={styles.dividerText}>or continue with Email</Text>
-                                    <View style={styles.inputContainer}>
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="Email"
-                                            value={email}
-                                            onChangeText={setEmail}
-                                            keyboardType="email-address"
-                                            autoCapitalize="none"
-                                        />
-                                    </View>
-                                    <View style={styles.inputContainer}>
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="Password"
-                                            value={password}
-                                            onChangeText={setPassword}
-                                            secureTextEntry={!showPassword}
-                                        />
-                                        <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
-                                            <Text>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                    <TouchableOpacity onPress={() => {}}>
-                                        <Text style={styles.forgotPassword}>Forgot Password?</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                                        <Text style={styles.loginButtonText}>Login</Text>
-                                    </TouchableOpacity>
-                                </>
-                            ) : (
-                                <>
-                                    <TouchableOpacity style={styles.imagePickerContainer} onPress={pickImage}>
-                                        {image ? (
-                                            <Image source={{ uri: image }} style={styles.profileImage} />
-                                        ) : (
-                                            <View style={styles.imagePlaceholder}>
-                                                <Text style={styles.imagePlaceholderText}>Add Photo</Text>
+                                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                                    <KeyboardAvoidingView
+                                        behavior={Platform.OS === "ios" ? "padding" : "height"}
+                                        style={{ flex: 1 }}
+                                        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+                                    >
+                                        <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20 }}>
+
+                                            <TouchableOpacity style={styles.socialButton}>
+                                                <Text style={styles.socialButtonText}>Login with Apple</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity style={styles.socialButton}>
+                                                <Text style={styles.socialButtonText}>Login with Google</Text>
+                                            </TouchableOpacity>
+
+                                            <Text style={styles.dividerText}>or continue with Email</Text>
+
+                                            <View style={styles.inputContainer}>
+                                                <TextInput
+                                                    style={styles.input}
+                                                    placeholder="Email"
+                                                    value={activeTab === 'login' ? loginEmail : signupEmail}
+                                                    onChangeText={activeTab === 'login' ? setLoginEmail : setSignupEmail}
+                                                    keyboardType="email-address"
+                                                    autoCapitalize="none"
+                                                />
+
                                             </View>
-                                        )}
-                                    </TouchableOpacity>
-                                    <View style={styles.inputContainer}>
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="Full Name"
-                                            value={name}
-                                            onChangeText={setName}
-                                        />
-                                    </View>
-                                    <View style={styles.inputContainer}>
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="Email"
-                                            value={email}
-                                            onChangeText={setEmail}
-                                            keyboardType="email-address"
-                                            autoCapitalize="none"
-                                        />
-                                    </View>
-                                    <View style={styles.inputContainer}>
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="Password"
-                                            value={password}
-                                            onChangeText={setPassword}
-                                            secureTextEntry={!showPassword}
-                                        />
-                                        <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
-                                            <Text>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
-                                        </TouchableOpacity>
-                                    </View>
+                                            <View style={styles.inputContainer}>
+                                                <TextInput
+                                                    style={styles.input}
+                                                    placeholder="Password"
+                                                    value={activeTab === 'login' ? loginPassword : signupPassword}
+                                                    onChangeText={activeTab === 'login' ? setLoginPassword : setSignupPassword}
+                                                    secureTextEntry={!showPassword}
+                                                />
+                                                <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
+                                                    <Text>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                                                </TouchableOpacity>
 
-                                    <TextInput
-                                        style={{ display: 'none' }}
-                                        value={role}
-                                        onChangeText={setRole}
-                                    />
+                                                <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
+                                                    <Text>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                                                </TouchableOpacity>
+                                            </View>
 
-                                    {renderGenderField()}
+                                            <TouchableOpacity onPress={() => {}}>
+                                                <Text style={styles.forgotPassword}>Forgot Password?</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+                                                <Text style={styles.loginButtonText}>Login</Text>
+                                            </TouchableOpacity>
 
-                                    <TouchableOpacity style={styles.loginButton} onPress={handleSignUp}>
-                                        <Text style={styles.loginButtonText}>Sign Up</Text>
-                                    </TouchableOpacity>
-                                </>
+                                        </ScrollView>
+                                    </KeyboardAvoidingView>
+                                </TouchableWithoutFeedback>
+                            ) : (
+                                <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                                    <KeyboardAvoidingView
+                                        behavior={Platform.OS === "ios" ? "padding" : "position"}
+                                        style={{ flex: 1 }}
+                                        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+                                    >
+                                        <ScrollView
+                                            contentContainerStyle={{ flexGrow: 1 }}
+                                            keyboardShouldPersistTaps="handled"
+                                        >
+                                            <View style={{ flex: 1, justifyContent: 'center', padding: 20 }}>
+
+                                                {/* Image Picker */}
+                                                <TouchableOpacity style={styles.imagePickerContainer} onPress={pickImage}>
+                                                    {image ? (
+                                                        <Image source={{ uri: image }} style={styles.profileImage} />
+                                                    ) : (
+                                                        <View style={styles.imagePlaceholder}>
+                                                            <Text style={styles.imagePlaceholderText}>Add Photo</Text>
+                                                        </View>
+                                                    )}
+                                                </TouchableOpacity>
+
+                                                {/* Full Name */}
+                                                <View style={styles.inputContainer}>
+                                                    <TextInput
+                                                        style={styles.input}
+                                                        placeholder="Full Name"
+                                                        value={name}
+                                                        onChangeText={setName}
+                                                    />
+                                                </View>
+
+                                                {/* Email */}
+                                                <View style={styles.inputContainer}>
+                                                    <TextInput
+                                                        style={styles.input}
+                                                        placeholder="Email"
+                                                        value={activeTab === 'login' ? loginEmail : signupEmail}
+                                                        onChangeText={activeTab === 'login' ? setLoginEmail : setSignupEmail}
+                                                        keyboardType="email-address"
+                                                        autoCapitalize="none"
+                                                    />
+                                                </View>
+
+                                                {/* Password */}
+                                                <View style={styles.inputContainer}>
+                                                    <TextInput
+                                                        style={styles.input}
+                                                        placeholder="Password"
+                                                        value={activeTab === 'login' ? loginPassword : signupPassword}
+                                                        onChangeText={activeTab === 'login' ? setLoginPassword : setSignupPassword}
+                                                        secureTextEntry={!showPassword}
+                                                    />
+                                                    <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
+                                                        <Text>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+
+                                                {/* Hidden Role Input */}
+                                                <TextInput style={{ display: 'none' }} value={role} onChangeText={setRole} />
+
+                                                {/* Gender Field */}
+                                                {renderGenderField()}
+
+                                                <TouchableOpacity style={styles.loginButton} onPress={handleSignUp}>
+                                                    <Text style={styles.loginButtonText}>Sign Up</Text>
+                                                </TouchableOpacity>
+
+                                            </View>
+                                        </ScrollView>
+                                    </KeyboardAvoidingView>
+                                </TouchableWithoutFeedback>
+
                             )}
 
                             <Text style={styles.termsText}>
@@ -261,7 +294,6 @@ const LoginScreen = ({ modalVisible, setModalVisible }) => {
                                 <Text style={styles.link}>Terms of Service</Text>{' '}and{' '}
                                 <Text style={styles.link}>Privacy Policy</Text>
                             </Text>
-                        </ScrollView>
                     </SafeAreaView>
                 </View>
             </Modal>
@@ -313,7 +345,7 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 16,
         paddingHorizontal: 20,
         paddingTop: 10,
-        maxHeight: '80%'
+        maxHeight: '90%'
     },
     scrollViewContent: {
         paddingBottom: 40,

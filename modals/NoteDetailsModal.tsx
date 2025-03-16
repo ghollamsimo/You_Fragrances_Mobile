@@ -3,21 +3,8 @@ import { View, Text, Modal, StyleSheet, TouchableOpacity, Dimensions } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
-const barMaxWidth = width * 0.8;
 
-
-
-const NoteModal = ({ modalVisible, setModalVisible }) => {
-  const fragranceNotes = [
-    { name: 'amber', color: '#D35400', width: '100%' },
-    { name: 'balsamic', color: '#B59E8B', width: '85%' },
-    { name: 'aromatic', color: '#76C5B7', width: '75%' },
-    { name: 'woody', color: '#8B7355', width: '90%' },
-    { name: 'salty', color: '#E8E8E8', width: '65%' },
-    { name: 'smoky', color: '#95A5A6', width: '80%' },
-    { name: 'warm spicy', color: '#E9967A', width: '70%' },
-    { name: 'sweet', color: '#FFB6C1', width: '60%' },
-  ];
+const NoteModal = ({ modalVisible, setModalVisible, ingredients }) => {
   return (
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
@@ -30,7 +17,7 @@ const NoteModal = ({ modalVisible, setModalVisible }) => {
             </View>
 
             <View style={styles.notesContainer}>
-              {fragranceNotes.map((note, index) => (
+              {ingredients?.map((note, index) => (
                   <View key={index} style={styles.noteRow}>
                     <Text style={styles.noteName}>{note.name}</Text>
                     <View style={styles.barContainer}>
@@ -42,7 +29,9 @@ const NoteModal = ({ modalVisible, setModalVisible }) => {
                               width: note.width,
                             },
                           ]}
-                      ><Text>{note.width}</Text></View>
+                      >
+                        <Text>{note.width}</Text>
+                      </View>
                     </View>
                   </View>
               ))}

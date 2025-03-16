@@ -13,7 +13,7 @@ class PerfumeService {
     }
 
     async perfumeDetail(id: string){
-        const response = await this.http.get(`/brand/show/${id}`)
+        const response = await this.http.get(`/perfumes/show/${id}`)
         return response.data
     }
 

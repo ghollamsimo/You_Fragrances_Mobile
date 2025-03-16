@@ -11,16 +11,16 @@ import {
     Dimensions,
     SafeAreaView,
 } from "react-native"
-import {X} from "lucide-react-native"
 import {BrandModal} from "../modals/BrandModal";
 
 const PopularBrands = ({brands}: any) => {
     const [modalVisible, setModalVisible] = useState(false)
     const [selectedBrand, setSelectedBrand] = useState<null>(null)
     const openModal = (brand) => {
-        setSelectedBrand(brand)
-        setModalVisible(true)
-    }
+        setSelectedBrand(brand);
+        setModalVisible(true);
+    };
+
 
     const closeModal = () => {
         setModalVisible(false)

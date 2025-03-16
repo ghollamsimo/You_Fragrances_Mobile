@@ -3,33 +3,34 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const Search = () => {
+const Search = ({ onSearch }) => {
   const navigation = useNavigation();
   const [search, setSearch] = useState('');
 
   const updateSearch = (value) => {
     setSearch(value);
+    onSearch(value);
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.navigate('Main')} style={styles.iconWrapper}>
-        <Ionicons name="arrow-back" size={24} color="black" />
-      </TouchableOpacity>
+      <View style={styles.container}>
+        <TouchableOpacity onPress={() => navigation.navigate('Main')} style={styles.iconWrapper}>
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
 
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Type here..."
-          value={search}
-          onChangeText={updateSearch}
-        />
+        <View style={styles.searchContainer}>
+          <TextInput
+              style={styles.input}
+              placeholder="Type here..."
+              value={search}
+              onChangeText={updateSearch}
+          />
+        </View>
+
+        <TouchableOpacity style={styles.proBadge}>
+          <Text style={styles.proText}>PRO</Text>
+        </TouchableOpacity>
       </View>
-
-      <TouchableOpacity style={styles.proBadge}>
-        <Text style={styles.proText}>PRO</Text>
-      </TouchableOpacity>
-    </View>
   );
 };
 
@@ -39,7 +40,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingTop: 60,
-    paddingBottom:20,
+    paddingBottom: 20,
     borderBottomColor: '#d9dadb',
     borderWidth: 0.5,
   },
@@ -58,9 +59,6 @@ const styles = StyleSheet.create({
   input: {
     height: 40,
     fontSize: 16,
-    paddingVertical: 0,
-    // gap:10,
-
   },
   proBadge: {
     backgroundColor: '#3E7796',

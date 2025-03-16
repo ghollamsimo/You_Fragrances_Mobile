@@ -10,14 +10,42 @@ import {
     Dimensions
 } from "react-native";
 import { X } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../redux/Store";
+import { followBrand } from "../redux/slices/AuthSlice";
 
 export const BrandModal = ({ modalVisible, closeModal, selectedBrand }) => {
-    const [isFollowing, setIsFollowing] = useState<boolean>(false);
+    const dispatch = useDispatch<AppDispatch>();
     const navigation = useNavigation();
-    const toggleFollow = () => {
-        setIsFollowing((prev) => !prev);
+
+    const followingBrands = useSelector((state: RootState) => state.auth.followBrandData);
+
+    const [isFollowing, setIsFollowing] = useState<boolean>(false);
+    const [isProcessing, setIsProcessing] = useState<boolean>(false);
+    useEffect(() => {
+        if (modalVisible && selectedBrand?._id) {
+            setIsFollowing(followingBrands.includes(selectedBrand._id));
+        }
+    }, [modalVisible, selectedBrand, followingBrands]);
+
+
+    const toggleFollow = async () => {
+        if (!selectedBrand?._id || isProcessing) {
+            return;
+        }
+
+        setIsProcessing(true);
+        try {
+            await dispatch(followBrand(selectedBrand._id)).unwrap();
+
+            // Force update `isFollowing` immediately after follow action
+            setIsFollowing((prev) => !prev);
+        } catch (error) {
+            console.error("Error following brand:", error);
+        }
+        setIsProcessing(false);
     };
 
     return (
@@ -27,14 +55,23 @@ export const BrandModal = ({ modalVisible, closeModal, selectedBrand }) => {
                     <View style={styles.modalHeader}>
                         <Text style={styles.modalTitle}>{selectedBrand?.name ?? "Brand"}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <TouchableOpacity
-                                style={[styles.followButton, isFollowing ? styles.followingButton : {}]}
-                                onPress={toggleFollow}
-                            >
-                                <Text style={[styles.followButtonText, isFollowing ? styles.followingButtonText : {}]}>
-                                    {isFollowing ? "Following" : "Follow"}
-                                </Text>
-                            </TouchableOpacity>
+                            {selectedBrand?._id && (
+                                isFollowing ? (
+                                    <View style={[styles.followButton, styles.followingButton]}>
+                                        <Text style={styles.followingButtonText}>Following</Text>
+                                    </View>
+                                ) : (
+                                    <TouchableOpacity
+                                        style={styles.followButton}
+                                        onPress={toggleFollow}
+                                        disabled={isProcessing}
+                                    >
+                                        <Text style={styles.followButtonText}>Follow</Text>
+                                    </TouchableOpacity>
+                                )
+                            )}
+
+
                             <TouchableOpacity onPress={() => closeModal(false)} style={styles.closeButton}>
                                 <X size={24} color="#333" />
                             </TouchableOpacity>
@@ -43,8 +80,7 @@ export const BrandModal = ({ modalVisible, closeModal, selectedBrand }) => {
 
                     <ScrollView style={styles.modalBody}>
                         {selectedBrand?.image && (
-                            <Image source={{ uri: selectedBrand.image.replace('127.0.0.1', '192.168.1.116') }}
-                                                                   style={styles.modalImage} />
+                            <Image source={{ uri: selectedBrand.image.replace('127.0.0.1', '192.168.1.116') }} style={styles.modalImage} />
                         )}
                         <Text style={styles.modalDescription}>{selectedBrand?.description ?? "No description available"}</Text>
 
@@ -56,11 +92,12 @@ export const BrandModal = ({ modalVisible, closeModal, selectedBrand }) => {
                                         <TouchableOpacity
                                             key={perfume._id}
                                             style={styles.productCard}
-                                            onPress={() => navigation.navigate('PerfumeDetails', { perfume })}
+                                            onPress={() => navigation.navigate('PerfumeDetails', { perfume: perfume })}
+
                                         >
                                             <Image source={{ uri: perfume.image.replace('127.0.0.1', '192.168.1.116') }} style={styles.image} />
                                             <View style={styles.cardContent}>
-                                                <Text style={styles.cardTitle}>{perfume.name}</Text>
+                                                <Text style={styles.cardTitle}>{perfume?.name}</Text>
                                             </View>
                                         </TouchableOpacity>
                                     ))
@@ -72,12 +109,6 @@ export const BrandModal = ({ modalVisible, closeModal, selectedBrand }) => {
                             </ScrollView>
                         </View>
                     </ScrollView>
-
-                    {/*<View style={styles.modalFooter}>*/}
-                    {/*    <TouchableOpacity style={styles.viewAllButton}>*/}
-                    {/*        <Text style={styles.viewAllButtonText}>View All Perfumes</Text>*/}
-                    {/*    </TouchableOpacity>*/}
-                    {/*</View>*/}
                 </View>
             </SafeAreaView>
         </Modal>
@@ -156,8 +187,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 170,
         resizeMode: 'cover',
-        borderBottomColor: '#E8E9EB',
-        borderBottomWidth: 1,
+
     },
     cardContent: {
         padding: 10,
@@ -167,22 +197,6 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         color: "#333",
         textAlign: "center",
-    },
-    modalFooter: {
-        padding: 15,
-        borderTopWidth: 1,
-        borderTopColor: "#E8E9EB",
-    },
-    viewAllButton: {
-        backgroundColor: "#3E7796",
-        padding: 15,
-        borderRadius: 10,
-        alignItems: "center",
-    },
-    viewAllButtonText: {
-        color: "white",
-        fontWeight: "bold",
-        fontSize: 16,
     },
     followButton: {
         backgroundColor: "#3E7796",
@@ -203,4 +217,3 @@ const styles = StyleSheet.create({
         color: "#333",
     },
 });
-

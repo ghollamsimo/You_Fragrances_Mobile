@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     View,
     Text,
@@ -8,9 +8,13 @@ import {
     SafeAreaView,
     ScrollView,
     Image,
-    TextInput, Switch,
+    TextInput, Switch, Alert, AppState
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {useDispatch, useSelector} from "react-redux";
+import {AppDispatch, RootState} from "../redux/Store";
+import {addReview, getReviewsByPerfume} from "../redux/slices/ReviewSlice";
+import {setSelectedPerfume} from "../redux/slices/PerfumeSlice";
 
 const StarRating = ({ rating, setRating }) => {
     return (
@@ -40,19 +44,31 @@ const ToggleButton = ({ isEnabled = true, setIsEnabled = false, label }) => {
 }
 
 const AddReviewModal = ({ modalVisible, setModalVisible, product }) => {
+    const dispatch = useDispatch<AppDispatch>();
+    const selectedPerfume = useSelector((state: RootState) => state.perfumes.selectedPerfume);
     const [rating, setRating] = useState(0);
     const [recommend, setRecommend] = useState(false);
     const [review, setReview] = useState('');
-    console.log('christian women', product.brand.name)
-    const handleSubmit = () => {
-        console.log({
-            product: product._id,
-            rating,
-            recommend,
-            review,
-        });
 
-        setModalVisible(false)
+    const handleSubmit = async () => {
+        try {
+            const data = {
+                rating,
+                recommended: recommend,
+                comment: review,
+            };
+
+            const response = await dispatch(addReview({ perfumeId: product._id, data }));
+
+            if (response) {
+                Alert.alert("Review submitted successfully");
+            }
+
+            setModalVisible(false);
+        } catch (error) {
+            console.error("Error submitting review:", error);
+            alert("Failed to submit the review. Please try again.");
+        }
     };
 
     return (

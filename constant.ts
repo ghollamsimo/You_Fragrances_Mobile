@@ -15,3 +15,8 @@ export interface RegisterField {
 export interface ChatbotField {
     prompt: string;
 }
+
+export interface addFavoriteField{
+    token : any,
+    perfumeId: any
+}

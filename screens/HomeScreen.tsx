@@ -16,13 +16,6 @@ const HomeScreen: React.FC = () => {
   const perfumes = useSelector((state: RootState) => state.perfumes.perfumesData);
   const [loading, setLoading] = useState(true);
 
-  // const getToken = async () => {
-  //   const token = await AsyncStorage.getItem('token');
-  //   console.log('mokhatabokom laaayojad', token);
-  // };
-  //
-  // getToken();
-
   useEffect(() => {
     setLoading(true);
     dispatch(index());
@@ -46,7 +39,7 @@ const HomeScreen: React.FC = () => {
   return (
       <View style={styles.container}>
         <Header
-            title="Hi,"
+            title="HomeScreen"
             avatarUrl="https://static.wikia.nocookie.net/gorillatag/images/3/33/SnowOwlMaskSprite.png/revision/latest/thumbnail/width/360/height/450?cb=20230127222407'"
             showProBadge={true}
         />

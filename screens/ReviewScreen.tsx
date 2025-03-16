@@ -1,19 +1,40 @@
-import React, {useState} from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Alert} from 'react-native';
 import { ArrowLeft, Star } from 'lucide-react-native';
 import {useDispatch, useSelector} from "react-redux";
 import {AppDispatch, RootState} from "../redux/Store";
 import AddReviewModal from "../modals/AddReviewModal";
 import {useNavigation} from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {jwtDecode} from "jwt-decode";
 
 const ReviewScreen = () => {
     const selectedPerfume = useSelector((state: RootState) => state.perfumes.selectedPerfume);
     const navigation = useNavigation()
+    const [token, setToken] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
     const [writeModal , setWriteModal] = useState<boolean>()
     if (!selectedPerfume) {
         return <Text>No perfume selected</Text>;
     }
 
+    useEffect(() => {
+        const checkToken = async () => {
+            try {
+                const storedToken = await AsyncStorage.getItem("token");
+                if (storedToken) {
+                    setToken(storedToken);
+                    const decoded: any = jwtDecode(storedToken);
+                    setUserId(decoded.id);
+
+                }
+            } catch (error) {
+                console.error("Error fetching or decoding token:", error);
+            }
+        };
+
+        checkToken();
+    }, [selectedPerfume]);
     const renderStars = (rating) => {
         return (
             <View style={styles.starsContainer}>
@@ -36,23 +57,23 @@ const ReviewScreen = () => {
         <Text style={styles.headerTitle}>User Reviews</Text>
     </View>
 
-            <ScrollView style={styles.reviewsContainer}>
+            <ScrollView key={selectedPerfume._id} style={styles.reviewsContainer}>
                 {selectedPerfume?.reviews?.length > 0 ? (
-                    selectedPerfume.reviews.map((review: any, index) => {
+                    selectedPerfume.reviews.map((review, index) => {
                         return (
                             <View key={index} style={styles.reviewCard}>
                                 <View style={styles.reviewHeader}>
                                     <View style={styles.userInfo}>
-                                        <Image source={{uri : review.user.image?.replace('127.0.0.1', '192.168.1.116')}}/>
-                                        <Text style={styles.userName}>{review.user.name}</Text>
-                                        <Text style={styles.date}>{new Date(review.createdAt).toDateString()}</Text>
+                                        <Image source={{uri : review?.user?.image?.replace('127.0.0.1', '192.168.1.116')}}/>
+                                        <Text style={styles.userName}>{review?.user?.name}</Text>
+                                        <Text style={styles.date}>{new Date(review?.createdAt).toDateString()}</Text>
                                     </View>
-                                    {renderStars(review.rating)}
+                                    {renderStars(review?.rating)}
                                 </View>
 
-                                <Text style={styles.reviewText}>{review.comment}</Text>
+                                <Text style={styles.reviewText}>{review?.comment}</Text>
 
-                                {review.recommended && (
+                                {review?.recommended && (
                                     <View style={styles.recommendedContainer}>
                                         <Text style={styles.recommendedText}>🌟 Recommended!</Text>
                                     </View>
@@ -63,11 +84,29 @@ const ReviewScreen = () => {
                 ) : (
                     <Text style={{ textAlign: "center", padding: 20 }}>No reviews available.</Text>
                 )}
-            </ScrollView>
 
-    <TouchableOpacity onPress={() => setWriteModal(true)} style={styles.writeReviewButton}>
-    <Text style={styles.writeReviewText}> Write Review</Text>
-    </TouchableOpacity>
+            </ScrollView>
+            {token ? (
+                <TouchableOpacity onPress={() => setWriteModal(true)} style={styles.writeReviewButton}>
+                    <Text style={styles.writeReviewText}> Write Review</Text>
+                </TouchableOpacity>
+            ):
+                <TouchableOpacity onPress={() =>  Alert.alert(
+                    "Access Denied",
+                    "You need to be logged in to use this feature.",
+                    [{ text: "OK" }]
+                )
+                } style={{   backgroundColor: 'rgba(62,119,150,0.22)',
+                    margin: 16,
+                    padding: 16,
+                    borderRadius: 8,
+                    alignItems: 'center',
+
+                }}>
+                    <Text style={styles.writeReviewText}> Write Review</Text>
+                </TouchableOpacity>
+            }
+
             {writeModal && <AddReviewModal product={selectedPerfume} modalVisible={writeModal} setModalVisible={setWriteModal}/>}
     </SafeAreaView>
 );

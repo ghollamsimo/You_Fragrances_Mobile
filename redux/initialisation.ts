@@ -8,6 +8,9 @@ export const initialState = {
     brandData:[],
     history: [],
     chatbotMessages: [],
+    favoritesData: [],
+    reviewData: [],
+    followBrandData: [],
     errorMessage: null,
     token: null,
 };

@@ -14,9 +14,6 @@ const PerfumeHelperNavbar = () => {
       }
     return (
         <View style={styles.container}>
-            <TouchableOpacity onPress={() => navigation.navigate('Main')} style={styles.iconWrapper}>
-               <Ionicons name="arrow-back" size={24} color="gray" />
-            </TouchableOpacity>
 
             <View style={styles.textContainer}>
                 <Text style={[styles.title, {fontFamily: 'Poppins-SemiBold'}]}>Perfume Helper</Text>

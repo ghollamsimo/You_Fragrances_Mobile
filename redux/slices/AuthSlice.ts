@@ -27,6 +27,29 @@ export const login = createAsyncThunk(
     }
 )
 
+
+export const followBrand = createAsyncThunk(
+    "follow",
+    async (brandId:string , {rejectWithValue}) => {
+        try {
+            return await AuthService.followBrand(brandId)
+        }catch (err) {
+            return rejectWithValue(err.response?.data || 'Something went wrong.');
+        }
+    }
+)
+
+export const fetchFollowedBrands = createAsyncThunk(
+    "followed",
+    async (_ , {rejectWithValue}) => {
+        try {
+            return await AuthService.fetchFollowedBrands()
+        }catch (err) {
+            return rejectWithValue(err.response?.data || 'Something went wrong.');
+        }
+    }
+)
+
 const authSlice = createSlice({
     name: 'auth',
     initialState,
@@ -60,8 +83,6 @@ const authSlice = createSlice({
             })
             .addCase(login.fulfilled, (state, action: PayloadAction<any>) => {
                 state.loading = false;
-                console.log("Login successful:", action.payload);  // Log the payload
-
                 if (action.payload && action.payload.token) {
                     state.token = action.payload.token;
                     AsyncStorage.setItem('token', action.payload.token);
@@ -75,7 +96,32 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.errorMessage = action.payload || "login failed";
             })
+            .addCase(followBrand.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(followBrand.fulfilled, (state, action: PayloadAction<any>) => {
+                state.loading = false;
+                state.followBrandData = action.payload;
+                state.errorMessage = null;
+            })
 
+            .addCase(followBrand.rejected, (state, action: PayloadAction<string | undefined>) => {
+                state.loading = false;
+                state.errorMessage = action.payload || "failed";
+            })
+            .addCase(fetchFollowedBrands.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchFollowedBrands.fulfilled, (state, action: PayloadAction<any>) => {
+                state.loading = false;
+                state.followBrandData = action.payload;
+                state.errorMessage = null;
+            })
+
+            .addCase(fetchFollowedBrands.rejected, (state, action: PayloadAction<string | undefined>) => {
+                state.loading = false;
+                state.errorMessage = action.payload || "failed";
+            })
     }
 })
 export default authSlice.reducer;
