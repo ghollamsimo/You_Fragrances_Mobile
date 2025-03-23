@@ -1,36 +1,46 @@
-import { useEffect, useState } from "react"
-import { Text, TouchableOpacity, View, StyleSheet, Image, SafeAreaView, ScrollView } from "react-native"
+import {useEffect, useState} from "react"
+import {Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import { useNavigation } from "@react-navigation/native"
+import {useNavigation} from "@react-navigation/native"
 import Ionicons from "react-native-vector-icons/Ionicons"
-import { jwtDecode } from "jwt-decode"
+import {jwtDecode} from "jwt-decode"
 import MyReviewsModal from "../modals/MyReviewsModal"
 import LoginScreen from "./auth/LoginScreen"
 import MyFollowingModal from "../modals/MyFollowingModal";
+import {useDispatch, useSelector} from "react-redux";
+import {AppDispatch, RootState} from "../redux/Store";
+import {logout} from "../redux/slices/AuthSlice";
 
 const ProfileScreen = () => {
     const navigation = useNavigation()
     const [auth, setAuth] = useState(false)
+    const dispatch = useDispatch<AppDispatch>();
     const [modalVisible, setModalVisible] = useState(false)
     const [followVisible, setFollowVisible] = useState(false)
-    const [user, setUser] = useState(null)
-    const [token, setToken] = useState(null)
+    const token = useSelector((state: RootState) => state.auth.token);
+    const [tokenFromAsync, setTokenFromAsync] = useState<string | null>(null);
+    const [user, setUser] = useState<any>(null); 
 
     useEffect(() => {
-        const fetchToken = async () => {
-            const storedToken = await AsyncStorage.getItem("token")
-            if (storedToken) {
-                setToken(storedToken)
-                const decodedToken = jwtDecode(storedToken)
-                setUser(decodedToken)
-            } else {
-                setToken(null)
-                setUser(null)
-            }
-        }
+        const fetchUserData = async () => {
+            try {
+                const storedToken = token || (await AsyncStorage.getItem("token"));
 
-        fetchToken()
-    }, [token])
+                if (storedToken) {
+                    const decodedToken = jwtDecode(storedToken);
+                    setUser(decodedToken);
+                    setTokenFromAsync(storedToken);
+                } else {
+                    setUser(null);
+                }
+            } catch (error) {
+                console.error("Error decoding token:", error);
+                setUser(null);
+            }
+        };
+
+        fetchUserData();
+    }, [token]); 
 
     return (
         <SafeAreaView style={styles.container}>
@@ -40,7 +50,7 @@ const ProfileScreen = () => {
 
             <ScrollView style={styles.scrollView}>
                 <View style={styles.welcomeContainer}>
-                    {user ? (
+                    {token && user ? (
                         <View style={styles.userContainer}>
                             <Image source={{ uri: user?.image?.replace("127.0.0.1", "192.168.1.116") }} style={styles.avatar} />
                             <View style={styles.userInfo}>
@@ -69,30 +79,8 @@ const ProfileScreen = () => {
                         <Ionicons name="chevron-forward" size={20} color="#A8C8B8" />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate("privacyPolicy")}>
-                        <View style={styles.menuLeft}>
-                            <Ionicons name="shield-outline" size={24} color="#A8C8B8" style={styles.menuIcon} />
-                            <Text style={styles.menuText}>Privacy Policy</Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={20} color="#A8C8B8" />
-                    </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate("termsOfUse")}>
-                        <View style={styles.menuLeft}>
-                            <Ionicons name="document-text-outline" size={24} color="#A8C8B8" style={styles.menuIcon} />
-                            <Text style={styles.menuText}>Terms of Use</Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={20} color="#A8C8B8" />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.menuItem} onPress={() => setModalVisible(true)}>
-                        <View style={styles.menuLeft}>
-                            <Ionicons name="notifications-outline" size={24} color="#A8C8B8" style={styles.menuIcon} />
-                            <Text style={styles.menuText}>Notifications</Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={20} color="#A8C8B8" />
-                    </TouchableOpacity>
-
+                    {(token || tokenFromAsync) && (
                     <TouchableOpacity style={styles.menuItem} onPress={() => setFollowVisible(true)}>
                         <View style={styles.menuLeft}>
                             <Ionicons name="person-outline" size={24} color="#A8C8B8" style={styles.menuIcon} />
@@ -103,17 +91,18 @@ const ProfileScreen = () => {
                             style={styles.diamondIcon}
                         />
                     </TouchableOpacity>
+                        )}
                 </View>
 
 
 
-                {token && (
+                {(token || tokenFromAsync) && (
                     <TouchableOpacity
                         style={styles.signOutButton}
                         onPress={async () => {
-                            await AsyncStorage.removeItem("token")
-                            setToken(null)
-                            setUser(null)
+                            await dispatch(logout());
+                            setUser(null);
+                            setTokenFromAsync(null);
                         }}
                     >
                         <Text style={styles.signOutText}>Sign Out</Text>

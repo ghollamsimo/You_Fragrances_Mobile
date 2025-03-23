@@ -19,9 +19,7 @@ const PerfumeHelperNavbar = () => {
                 <Text style={[styles.title, {fontFamily: 'Poppins-SemiBold'}]}>Perfume Helper</Text>
             </View>
 
-            <TouchableOpacity style={styles.iconHeart}>
-              <Ionicons name="document-text-outline" color="gray" size={24} />
-            </TouchableOpacity>
+          
         </View>
     )
 }

@@ -12,8 +12,10 @@ import {
     SafeAreaView,
 } from "react-native"
 import {BrandModal} from "../modals/BrandModal";
+import {useNavigation} from "@react-navigation/native";
 
 const PopularBrands = ({brands}: any) => {
+    const navigation = useNavigation()
     const [modalVisible, setModalVisible] = useState(false)
     const [selectedBrand, setSelectedBrand] = useState<null>(null)
     const openModal = (brand) => {
@@ -32,7 +34,7 @@ const PopularBrands = ({brands}: any) => {
             <View style={styles.popular_section}>
                 <Text style={styles.title}>Popular Brands</Text>
 
-                <TouchableOpacity style={styles.proBadge}>
+                <TouchableOpacity onPress={() => navigation.navigate('AllBrands', { brands })} style={styles.proBadge}>
                     <Text style={styles.proBadge_text}>See All</Text>
                 </TouchableOpacity>
             </View>

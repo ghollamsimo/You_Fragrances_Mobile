@@ -14,25 +14,21 @@ import { Ionicons } from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {AppDispatch, RootState} from "../redux/Store";
 import {loadPerfumeHistory} from "../redux/slices/PerfumeSlice";
+import {getUserFavorites} from "../redux/slices/FavoriteSlice";
 
 const HistoryScreen = () => {
     const dispatch = useDispatch<AppDispatch>();
     const history = useSelector((state: RootState) => state.perfumes.history);
+    const favorite = useSelector((state: RootState) => state.favorites.favoriteUserData)
+    console.log('fav', favorite);
+    
     const [activeTab, setActiveTab] = useState("Recents");
-    const [favorites, setFavorites] = useState({});
-
-    const toggleFavorite = (id) => {
-        setFavorites((prev) => ({
-            ...prev,
-            [id]: !prev[id],
-        }));
-    };
 
 
     const uniqueHistory = Array.from(new Map(history.map((item) => [item._id, item])).values());
-    const favoritePerfumes = uniqueHistory.filter((perfume) => favorites[perfume._id]);
     useEffect(() => {
         dispatch(loadPerfumeHistory());
+        dispatch(getUserFavorites())
     }, [dispatch]);
 
     return (
@@ -75,31 +71,22 @@ const HistoryScreen = () => {
                                         <Text style={styles.safetyText}>Rating: {perfume.averageRating}</Text>
                                     </View>
                                 </View>
-
-                                <TouchableOpacity style={styles.favoriteButton} onPress={() => toggleFavorite(perfume._id)}>
-                                    <Ionicons name={favorites[perfume._id] ? "heart" : "heart-outline"} size={24} color="#CCCCCC" />
-                                </TouchableOpacity>
                             </View>
                         ))
                     ) : (
                         <Text style={styles.emptyText}>No recent perfumes found.</Text>
                     )
                 ) : (
-                    favoritePerfumes.length > 0 ? (
-                        favoritePerfumes.map((perfume) => (
-                            <View key={perfume._id} style={styles.productCard}>
-                                <Image source={{ uri: perfume.image.replace("127.0.0.1", "192.168.1.116") }} style={styles.productImage} />
+                    favorite.length > 0 ? (
+                        favorite.map((favoriteItem) => (
+                            <View key={favoriteItem._id} style={styles.productCard}>
+                                <Image
+                                    source={{ uri: favoriteItem?.image.replace("127.0.0.1", "192.168.1.116") }}
+                                    style={styles.productImage}
+                                />
                                 <View style={styles.productInfo}>
-                                    <Text style={styles.brandName}>{perfume.brand.name}</Text>
-                                    <Text style={styles.productName}>{perfume.name}</Text>
-                                    <View style={[styles.safetyBadge, perfume.averageRating > 3.5 ? styles.highSafety : styles.lowSafety]}>
-                                        <Text style={styles.safetyText}>Rating: {perfume.averageRating}</Text>
-                                    </View>
+                                    <Text style={styles.productName}>{favoriteItem?.name}</Text>
                                 </View>
-
-                                <TouchableOpacity style={styles.favoriteButton} onPress={() => toggleFavorite(perfume._id)}>
-                                    <Ionicons name={favorites[perfume._id] ? "heart" : "heart-outline"} size={24} color="#CCCCCC" />
-                                </TouchableOpacity>
                             </View>
                         ))
                     ) : (

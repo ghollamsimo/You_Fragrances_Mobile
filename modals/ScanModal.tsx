@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -8,20 +8,52 @@ import {
     SafeAreaView,
     Dimensions,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Scanner from "../components/ScannerComponent";
+import {useDispatch, useSelector} from "react-redux";
+import {AppDispatch, RootState} from "../redux/Store";
+import {indexPerfumes} from "../redux/slices/PerfumeSlice";
+import {useNavigation} from "@react-navigation/native";
 
 const { width, height } = Dimensions.get("window");
 
 const ScanModal = ({ modalVisible, setModalVisible }) => {
     const [scannedData, setScannedData] = useState<string | null>(null);
-    const [results, setResults] = useState(false)
-    const handleScan = (barcode: string) => {
-        console.log("Scanned Data:", barcode);
-        setScannedData(barcode);
-        setResults(true)
+    const [showNoMatch, setShowNoMatch] = useState(false);
+    const dispatch = useDispatch<AppDispatch>();
+    const navigation = useNavigation();
+    const perfumes = useSelector((state: RootState) => state.perfumes.perfumesData);
+
+
+
+    const filterBarcode = (barcode: string) => {
+        const matchingPerfume = perfumes.find((perfume) =>
+            perfume?.Barcode === barcode
+        );
+        return matchingPerfume || null;
     };
+
+    const handleScan = (barcode: string) => {
+        setScannedData(barcode);
+        const matchedPerfume = filterBarcode(barcode);
+
+        if (matchedPerfume) {
+            navigation.navigate('PerfumeDetails', { perfume: matchedPerfume });
+            handleClose();
+        } else {
+            setShowNoMatch(true);
+        }
+    };
+
+    const handleClose = () => {
+        setScannedData(null);
+        setShowNoMatch(false);
+        setModalVisible(false);
+    };
+
+    useEffect(() => {
+        dispatch(indexPerfumes());
+    }, [dispatch]);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -29,56 +61,64 @@ const ScanModal = ({ modalVisible, setModalVisible }) => {
                 animationType="slide"
                 transparent={true}
                 visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
+                onRequestClose={handleClose}
             >
                 <View style={styles.modalContainer}>
-                    <Scanner onScan={handleScan} onClose={() => setModalVisible(false)} style={styles.scanner} />
+                    {/* Scanner View */}
+                    {!showNoMatch && (
+                        <>
+                            <Scanner
+                                onScan={handleScan}
+                                onClose={handleClose}
+                                style={styles.scanner}
+                            />
+                            <View style={styles.maskContainer}>
+                                <View style={styles.maskTop} />
+                                <View style={styles.maskRow}>
+                                    <View style={styles.maskSide} />
+                                    <View style={styles.scanFrame} />
+                                    <View style={styles.maskSide} />
+                                </View>
+                                <View style={styles.maskBottom} />
+                            </View>
 
+                            <View style={styles.modalContent}>
+                                <View style={styles.actionButtons}>
+                                    <TouchableOpacity
+                                        onPress={handleClose}
+                                        style={styles.roundButton}
+                                    >
+                                        <Ionicons name="close" size={24} color="white" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.roundButton}>
+                                        <Ionicons name="sunny" size={24} color="white" />
+                                    </TouchableOpacity>
+                                </View>
+                                <Text style={styles.scanText}>Scan the barcode</Text>
+                            </View>
+                        </>
+                    )}
 
-
-                    <View style={styles.maskContainer}>
-                        <View style={styles.maskTop} />
-                        <View style={styles.maskRow}>
-                            <View style={styles.maskSide} />
-                            <View style={styles.scanFrame} />
-                            <View style={styles.maskSide} />
-                        </View>
-                        <View style={styles.maskBottom} />
-                    </View>
-
-                    {/* Contenu de la modale */}
-                    <View style={styles.modalContent}>
-                        <View style={styles.actionButtons}>
-                            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.roundButton}>
-                                <Ionicons name="close" size={24} color="white" />
+                    {showNoMatch && scannedData && (
+                        <View style={styles.resultContainer}>
+                            <Text style={styles.resultText}>
+                                No matching product found for barcode: {scannedData}
+                            </Text>
+                            <TouchableOpacity
+                                onPress={handleClose}
+                                style={styles.closeButton}
+                            >
+                                <Text style={styles.closeButtonText}>Close</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.roundButton}>
-                                <Ionicons name="sunny" size={24} color="white" />
-                            </TouchableOpacity>
                         </View>
-
-                        <Text style={styles.scanText}>Scan the barcode</Text>
-
-                        {scannedData && <Text style={styles.scannedText}>Scanned: {scannedData}</Text>}
-                    </View>
+                    )}
                 </View>
             </Modal>
-            {results && (
-                <View style={styles.resultContainer}>
-                    <Text style={styles.resultText}>Scanned Barcode: {scannedData}</Text>
-                    <TouchableOpacity
-                        onPress={() => setResults(false)} // Ferme le résultat
-                        style={styles.closeButton}
-                    >
-                        <Text style={styles.closeButtonText}>Close</Text>
-                    </TouchableOpacity>
-                </View>
-            )}        </SafeAreaView>
+        </SafeAreaView>
     );
 };
 
 export default ScanModal;
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -165,5 +205,32 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "bold",
         color: "white",
+    },
+    resultContainer: {
+        position: 'absolute',
+        bottom: 20,
+        left: 0,
+        right: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        padding: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 10,
+    },
+    resultText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'white',
+    },
+    closeButton: {
+        marginTop: 10,
+        paddingVertical: 5,
+        paddingHorizontal: 15,
+        backgroundColor: '#FF5733',
+        borderRadius: 5,
+    },
+    closeButtonText: {
+        color: 'white',
+        fontSize: 16,
     },
 });

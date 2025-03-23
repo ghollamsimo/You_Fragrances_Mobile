@@ -1,117 +1,93 @@
 import React, {useEffect, useState} from 'react';
 import {View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Alert} from 'react-native';
 import { ArrowLeft, Star } from 'lucide-react-native';
-import {useDispatch, useSelector} from "react-redux";
-import {AppDispatch, RootState} from "../redux/Store";
+import {useSelector} from "react-redux";
+import {RootState} from "../redux/Store";
 import AddReviewModal from "../modals/AddReviewModal";
-import {useNavigation} from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {jwtDecode} from "jwt-decode";
+import {useNavigation, useRoute} from "@react-navigation/native";
 
 const ReviewScreen = () => {
-    const selectedPerfume = useSelector((state: RootState) => state.perfumes.selectedPerfume);
-    const navigation = useNavigation()
-    const [token, setToken] = useState<string | null>(null);
+    const route = useRoute();
+    const { perfumeId, perfumeName, brandName,perfumeImage } = route.params || {};
+    
+    const selectedPerfume = useSelector((state: RootState) => state.reviews.reviewData);
+    const navigation = useNavigation();
+    const token = useSelector((state: RootState) => state.auth.token);
     const [userId, setUserId] = useState<string | null>(null);
-    const [writeModal , setWriteModal] = useState<boolean>()
-    if (!selectedPerfume) {
-        return <Text>No perfume selected</Text>;
-    }
-
-    useEffect(() => {
-        const checkToken = async () => {
-            try {
-                const storedToken = await AsyncStorage.getItem("token");
-                if (storedToken) {
-                    setToken(storedToken);
-                    const decoded: any = jwtDecode(storedToken);
-                    setUserId(decoded.id);
-
-                }
-            } catch (error) {
-                console.error("Error fetching or decoding token:", error);
-            }
-        };
-
-        checkToken();
-    }, [selectedPerfume]);
+    const [writeModal, setWriteModal] = useState<boolean>();
+  
     const renderStars = (rating) => {
-        return (
-            <View style={styles.starsContainer}>
-                {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={16} color={i < rating ? "#FFD700" : "#D3D3D3"} />
-                ))}
-            </View>
-        );
+      return (
+        <View style={styles.starsContainer}>
+          {[...Array(5)].map((_, i) => (
+            <Star key={i} size={16} color={i < rating ? "#FFD700" : "#D3D3D3"} />
+          ))}
+        </View>
+      );
     };
-
+  
     return (
-        <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-        <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
->
-    <ArrowLeft size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>User Reviews</Text>
-    </View>
-
-            <ScrollView key={selectedPerfume._id} style={styles.reviewsContainer}>
-                {selectedPerfume?.reviews?.length > 0 ? (
-                    selectedPerfume.reviews.map((review, index) => {
-                        return (
-                            <View key={index} style={styles.reviewCard}>
-                                <View style={styles.reviewHeader}>
-                                    <View style={styles.userInfo}>
-                                        <Image source={{uri : review?.user?.image?.replace('127.0.0.1', '192.168.1.116')}}/>
-                                        <Text style={styles.userName}>{review?.user?.name}</Text>
-                                        <Text style={styles.date}>{new Date(review?.createdAt).toDateString()}</Text>
-                                    </View>
-                                    {renderStars(review?.rating)}
-                                </View>
-
-                                <Text style={styles.reviewText}>{review?.comment}</Text>
-
-                                {review?.recommended && (
-                                    <View style={styles.recommendedContainer}>
-                                        <Text style={styles.recommendedText}>🌟 Recommended!</Text>
-                                    </View>
-                                )}
-                            </View>
-                        );
-                    })
-                ) : (
-                    <Text style={{ textAlign: "center", padding: 20 }}>No reviews available.</Text>
-                )}
-
-            </ScrollView>
-            {token ? (
-                <TouchableOpacity onPress={() => setWriteModal(true)} style={styles.writeReviewButton}>
-                    <Text style={styles.writeReviewText}> Write Review</Text>
-                </TouchableOpacity>
-            ):
-                <TouchableOpacity onPress={() =>  Alert.alert(
-                    "Access Denied",
-                    "You need to be logged in to use this feature.",
-                    [{ text: "OK" }]
-                )
-                } style={{   backgroundColor: 'rgba(62,119,150,0.22)',
-                    margin: 16,
-                    padding: 16,
-                    borderRadius: 8,
-                    alignItems: 'center',
-
-                }}>
-                    <Text style={styles.writeReviewText}> Write Review</Text>
-                </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <ArrowLeft size={24} color="#000" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>User Reviews</Text>
+        </View>
+  
+        <ScrollView key={selectedPerfume._id} style={styles.reviewsContainer}>
+          {selectedPerfume?.length > 0 ? (
+            selectedPerfume.map((review, index) => {
+              return (
+                <View key={index} style={styles.reviewCard}>
+                  <View style={styles.reviewHeader}>
+                    <View style={styles.userInfo}>
+                      <Text style={styles.userName}>{review?.user?.name}</Text>
+                    </View>
+                    {renderStars(review?.rating)}
+                  </View>
+  
+                  <Text style={styles.reviewText}>{review?.comment}</Text>
+  
+                  {review?.recommended && (
+                    <View style={styles.recommendedContainer}>
+                      <Text style={styles.recommendedText}>🌟 Recommended!</Text>
+                    </View>
+                  )}
+                </View>
+              );
+            })
+          ) : (
+            <Text style={{ textAlign: "center", padding: 20 }}>No reviews available for this perfume.</Text>
+          )}
+        </ScrollView>
+  
+        {token ? (
+          <TouchableOpacity onPress={() => setWriteModal(true)} style={styles.writeReviewButton}>
+            <Text style={styles.writeReviewText}> Write Review</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={() =>
+              Alert.alert("Access Denied", "You need to be logged in to use this feature.", [{ text: "OK" }])
             }
-
-            {writeModal && <AddReviewModal product={selectedPerfume} modalVisible={writeModal} setModalVisible={setWriteModal}/>}
-    </SafeAreaView>
-);
-};
-
+            style={{
+              backgroundColor: "rgba(62,119,150,0.22)",
+              margin: 16,
+              padding: 16,
+              borderRadius: 8,
+              alignItems: "center",
+            }}
+          >
+            <Text style={styles.writeReviewText}> Write Review</Text>
+          </TouchableOpacity>
+        )}
+  
+        {writeModal && <AddReviewModal product={perfumeId} perfumeName={perfumeName} brandName={brandName} perfumeImage={perfumeImage} modalVisible={writeModal} setModalVisible={setWriteModal} />}
+      </SafeAreaView>
+    );
+  };
+  
 const styles = StyleSheet.create({
     container: {
         flex: 1,

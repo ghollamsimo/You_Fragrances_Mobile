@@ -20,6 +20,7 @@ import {login, register} from "../../redux/slices/AuthSlice";
 import {useDispatch} from "react-redux";
 import {AppDispatch} from "../../redux/Store";
 import RNPickerSelect from 'react-native-picker-select';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 const LoginScreen = ({ modalVisible, setModalVisible }) => {
@@ -28,34 +29,109 @@ const LoginScreen = ({ modalVisible, setModalVisible }) => {
     const [loginEmail, setLoginEmail] = useState('');
     const [signupEmail, setSignupEmail] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
+    const [emailError, setEmailError] = useState('');
+    const [passwordError, setPasswordError] = useState('');
     const [signupPassword, setSignupPassword] = useState('');
     const [name, setName] = useState('');
     const [image, setImage] = useState(null);
     const [gender, setGender] = useState('Male');
     const [role, setRole] = useState('client');
+    const [nameError, setNameError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const navigation = useNavigation();
 
+    const validateLoginForm = () => {
+        let isValid = true;
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!loginEmail) {
+            setEmailError('Email is required');
+            isValid = false;
+        } else if (!emailRegex.test(loginEmail)) {
+            setEmailError('Please enter a valid email');
+            isValid = false;
+        } else {
+            setEmailError('');
+        }
+
+        if (!loginPassword) {
+            setPasswordError('Password is required');
+            isValid = false;
+        } else if (loginPassword.length < 6) {
+            setPasswordError('Password must be at least 6 characters');
+            isValid = false;
+        } else {
+            setPasswordError('');
+        }
+
+        return isValid;
+    };
+
+    const validateSignupForm = () => {
+        let isValid = true;
+
+        if (!name) {
+            setNameError('Full name is required');
+            isValid = false;
+        } else if (name.length < 2) {
+            setNameError('Name must be at least 2 characters');
+            isValid = false;
+        } else {
+            setNameError('');
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!signupEmail) {
+            setEmailError('Email is required');
+            isValid = false;
+        } else if (!emailRegex.test(signupEmail)) {
+            setEmailError('Please enter a valid email');
+            isValid = false;
+        } else {
+            setEmailError('');
+        }
+
+        if (!signupPassword) {
+            setPasswordError('Password is required');
+            isValid = false;
+        } else if (signupPassword.length < 6) {
+            setPasswordError('Password must be at least 6 characters');
+            isValid = false;
+        } else {
+            setPasswordError('');
+        }
+
+        return isValid;
+    };
     const handleLogin = async () => {
+        if (!validateLoginForm()) {
+            return;
+        }
+
         const data = {
             email: loginEmail,
             password: loginPassword,
         };
-        try {
-            const user = await dispatch(login(data));
 
-            if (user) {
-                navigation.navigate("Main");
+        try {
+            const response = await dispatch(login(data)).unwrap();
+            if (response && response.token) {
+                navigation.navigate("Profile");
                 setModalVisible(false);
+                setLoginEmail('');
+                setLoginPassword('');
             } else {
                 alert('Invalid email or password');
             }
         } catch (error) {
             console.error('Login failed:', error);
+            alert('Login failed. Please try again.');
         }
     };
-
     const handleSignUp = async () => {
+        if (!validateSignupForm()) {
+            return;
+        }
         const formData = new FormData();
         formData.append('email', signupEmail);
         formData.append('password', signupPassword);
@@ -164,7 +240,6 @@ const LoginScreen = ({ modalVisible, setModalVisible }) => {
                                         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
                                     >
                                         <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20 }}>
-
                                             <TouchableOpacity style={styles.socialButton}>
                                                 <Text style={styles.socialButtonText}>Login with Apple</Text>
                                             </TouchableOpacity>
@@ -176,39 +251,49 @@ const LoginScreen = ({ modalVisible, setModalVisible }) => {
 
                                             <View style={styles.inputContainer}>
                                                 <TextInput
-                                                    style={styles.input}
+                                                    style={[styles.input, emailError ? styles.inputError : null]}
                                                     placeholder="Email"
-                                                    value={activeTab === 'login' ? loginEmail : signupEmail}
-                                                    onChangeText={activeTab === 'login' ? setLoginEmail : setSignupEmail}
+                                                    value={loginEmail}
+                                                    onChangeText={(text) => {
+                                                        setLoginEmail(text);
+                                                        if (emailError) setEmailError('');
+                                                    }}
                                                     keyboardType="email-address"
                                                     autoCapitalize="none"
                                                 />
-
+                                                {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
                                             </View>
+
                                             <View style={styles.inputContainer}>
                                                 <TextInput
-                                                    style={styles.input}
+                                                    style={[styles.input, passwordError ? styles.inputError : null]}
                                                     placeholder="Password"
-                                                    value={activeTab === 'login' ? loginPassword : signupPassword}
-                                                    onChangeText={activeTab === 'login' ? setLoginPassword : setSignupPassword}
+                                                    value={loginPassword}
+                                                    onChangeText={(text) => {
+                                                        setLoginPassword(text);
+                                                        if (passwordError) setPasswordError('');
+                                                    }}
                                                     secureTextEntry={!showPassword}
                                                 />
-                                                <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
+                                                <TouchableOpacity
+                                                    style={styles.eyeIcon}
+                                                    onPress={() => setShowPassword(!showPassword)}
+                                                >
                                                     <Text>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
                                                 </TouchableOpacity>
-
-                                                <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
-                                                    <Text>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
-                                                </TouchableOpacity>
+                                                {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
                                             </View>
 
                                             <TouchableOpacity onPress={() => {}}>
                                                 <Text style={styles.forgotPassword}>Forgot Password?</Text>
                                             </TouchableOpacity>
-                                            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+
+                                            <TouchableOpacity
+                                                style={styles.loginButton}
+                                                onPress={handleLogin}
+                                            >
                                                 <Text style={styles.loginButtonText}>Login</Text>
                                             </TouchableOpacity>
-
                                         </ScrollView>
                                     </KeyboardAvoidingView>
                                 </TouchableWithoutFeedback>
@@ -224,7 +309,6 @@ const LoginScreen = ({ modalVisible, setModalVisible }) => {
                                             keyboardShouldPersistTaps="handled"
                                         >
                                             <View style={{ flex: 1, justifyContent: 'center', padding: 20 }}>
-
                                                 {/* Image Picker */}
                                                 <TouchableOpacity style={styles.imagePickerContainer} onPress={pickImage}>
                                                     {image ? (
@@ -236,52 +320,68 @@ const LoginScreen = ({ modalVisible, setModalVisible }) => {
                                                     )}
                                                 </TouchableOpacity>
 
-                                                {/* Full Name */}
                                                 <View style={styles.inputContainer}>
                                                     <TextInput
-                                                        style={styles.input}
+                                                        style={[styles.input, nameError ? styles.inputError : null]}
                                                         placeholder="Full Name"
                                                         value={name}
-                                                        onChangeText={setName}
+                                                        onChangeText={(text) => {
+                                                            setName(text);
+                                                            if (nameError) setNameError('');
+                                                        }}
                                                     />
+                                                    {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
                                                 </View>
 
-                                                {/* Email */}
                                                 <View style={styles.inputContainer}>
                                                     <TextInput
-                                                        style={styles.input}
+                                                        style={[styles.input, emailError ? styles.inputError : null]}
                                                         placeholder="Email"
-                                                        value={activeTab === 'login' ? loginEmail : signupEmail}
-                                                        onChangeText={activeTab === 'login' ? setLoginEmail : setSignupEmail}
+                                                        value={signupEmail}
+                                                        onChangeText={(text) => {
+                                                            setSignupEmail(text);
+                                                            if (emailError) setEmailError('');
+                                                        }}
                                                         keyboardType="email-address"
                                                         autoCapitalize="none"
                                                     />
+                                                    {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
                                                 </View>
 
-                                                {/* Password */}
                                                 <View style={styles.inputContainer}>
                                                     <TextInput
-                                                        style={styles.input}
+                                                        style={[styles.input, passwordError ? styles.inputError : null]}
                                                         placeholder="Password"
-                                                        value={activeTab === 'login' ? loginPassword : signupPassword}
-                                                        onChangeText={activeTab === 'login' ? setLoginPassword : setSignupPassword}
+                                                        value={signupPassword}
+                                                        onChangeText={(text) => {
+                                                            setSignupPassword(text);
+                                                            if (passwordError) setPasswordError('');
+                                                        }}
                                                         secureTextEntry={!showPassword}
                                                     />
-                                                    <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
+                                                    <TouchableOpacity
+                                                        style={styles.eyeIcon}
+                                                        onPress={() => setShowPassword(!showPassword)}
+                                                    >
                                                         <Text>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
                                                     </TouchableOpacity>
+                                                    {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
                                                 </View>
 
-                                                {/* Hidden Role Input */}
-                                                <TextInput style={{ display: 'none' }} value={role} onChangeText={setRole} />
+                                                <TextInput
+                                                    style={{ display: 'none' }}
+                                                    value={role}
+                                                    onChangeText={setRole}
+                                                />
 
-                                                {/* Gender Field */}
                                                 {renderGenderField()}
 
-                                                <TouchableOpacity style={styles.loginButton} onPress={handleSignUp}>
+                                                <TouchableOpacity
+                                                    style={styles.loginButton}
+                                                    onPress={handleSignUp}
+                                                >
                                                     <Text style={styles.loginButtonText}>Sign Up</Text>
                                                 </TouchableOpacity>
-
                                             </View>
                                         </ScrollView>
                                     </KeyboardAvoidingView>
@@ -323,11 +423,20 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         color: '#333',
     },
+    inputError: {
+        borderColor: 'red',
+        borderWidth: 1,
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 12,
+        marginTop: 5,
+    },
     pickerInputIOS: {
         padding: 12,
         fontSize: 16,
         color: '#333',
-        paddingRight: 30, // space for the arrow icon
+        paddingRight: 30, 
     },
     container: {
         flex: 1,

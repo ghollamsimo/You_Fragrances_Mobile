@@ -35,7 +35,6 @@ export const getReviewsByPerfume = createAsyncThunk(
         try {
             const reviewService = await ReviewService;
             const response = await reviewService.getReviewsByPerfume(perfumeId);
-            console.log("Fetched reviews: ", response.data);
             return response;
         } catch (err) {
             console.error("Error fetching reviews: ", err);
@@ -65,11 +64,11 @@ const reviewSlice = createSlice({
             .addCase(addReview.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(addReview.fulfilled, (state, action: PayloadAction<any>) => {
+            .addCase(addReview.fulfilled, (state, action) => {
                 state.loading = false;
-                state.reviewData = action.payload.review || [];
-                state.selectedPerfume = action.payload.updatedProduct
+                state.selectedPerfume = action.payload.updatedProduct;
                 state.errorMessage = null;
+                console.log("Updated selectedPerfume:", state.selectedPerfume);
             })
 
             .addCase(addReview.rejected, (state, action: PayloadAction<string | undefined>) => {

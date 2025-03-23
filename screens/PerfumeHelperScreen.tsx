@@ -12,7 +12,7 @@ import { nanoid } from "@reduxjs/toolkit";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const PerfumeHelperScreen: React.FC = () => {
-  const [token, setToken] = useState<string | null>(null);
+  const token = useSelector((state: RootState) => state.auth.token)
   const dispatch = useDispatch<AppDispatch>();
   const chatbotMessages = useSelector((state: RootState) => state.chat.chatbotMessages);
   const loading = useSelector((state: RootState) => state.chat.loading);
@@ -31,14 +31,7 @@ const PerfumeHelperScreen: React.FC = () => {
     setInput("");
     Keyboard.dismiss();
   };
-    const checkToken = async () => {
-      const storedToken = await AsyncStorage.getItem('token');
-      setToken(storedToken);
-    };
-  useEffect(() => {
-
-    checkToken();
-  }, []);
+   
   const handleInputPress = () => {
     if (!token) {
       Alert.alert(

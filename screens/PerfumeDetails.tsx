@@ -64,7 +64,13 @@ const PerfumeDetails: React.FC = () => {
           </View>
 
           <View style={styles.reviewSection}>
-            <UserReviewSection averageRating={perfume.averageRating} reviews={perfume.reviews ?? []} />
+          <UserReviewSection
+        brandName={perfume.brand?.name}
+        perfumeName={perfume.name}
+        perfumeImage={perfume.image}
+        perfumeId={perfume._id}
+        averageRating={perfume.averageRating}
+      />
           </View>
 
           <Notes

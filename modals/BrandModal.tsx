@@ -26,10 +26,13 @@ export const BrandModal = ({ modalVisible, closeModal, selectedBrand }) => {
     const [isProcessing, setIsProcessing] = useState<boolean>(false);
     useEffect(() => {
         if (modalVisible && selectedBrand?._id) {
-            setIsFollowing(followingBrands.includes(selectedBrand._id));
+            if (Array.isArray(followingBrands)) {
+                setIsFollowing(followingBrands.includes(selectedBrand._id));
+            } else {
+                setIsFollowing(false);
+            }
         }
     }, [modalVisible, selectedBrand, followingBrands]);
-
 
     const toggleFollow = async () => {
         if (!selectedBrand?._id || isProcessing) {
@@ -39,8 +42,6 @@ export const BrandModal = ({ modalVisible, closeModal, selectedBrand }) => {
         setIsProcessing(true);
         try {
             await dispatch(followBrand(selectedBrand._id)).unwrap();
-
-            // Force update `isFollowing` immediately after follow action
             setIsFollowing((prev) => !prev);
         } catch (error) {
             console.error("Error following brand:", error);
@@ -71,7 +72,6 @@ export const BrandModal = ({ modalVisible, closeModal, selectedBrand }) => {
                                 )
                             )}
 
-
                             <TouchableOpacity onPress={() => closeModal(false)} style={styles.closeButton}>
                                 <X size={24} color="#333" />
                             </TouchableOpacity>
@@ -93,7 +93,6 @@ export const BrandModal = ({ modalVisible, closeModal, selectedBrand }) => {
                                             key={perfume._id}
                                             style={styles.productCard}
                                             onPress={() => navigation.navigate('PerfumeDetails', { perfume: perfume })}
-
                                         >
                                             <Image source={{ uri: perfume.image.replace('127.0.0.1', '192.168.1.116') }} style={styles.image} />
                                             <View style={styles.cardContent}>
@@ -111,8 +110,7 @@ export const BrandModal = ({ modalVisible, closeModal, selectedBrand }) => {
                     </ScrollView>
                 </View>
             </SafeAreaView>
-        </Modal>
-    );
+        </Modal>    );
 };
 
 const { width, height } = Dimensions.get("window");

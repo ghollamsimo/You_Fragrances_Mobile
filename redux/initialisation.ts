@@ -9,6 +9,7 @@ export const initialState = {
     history: [],
     chatbotMessages: [],
     favoritesData: [],
+    favoriteUserData: [],
     reviewData: [],
     followBrandData: [],
     errorMessage: null,

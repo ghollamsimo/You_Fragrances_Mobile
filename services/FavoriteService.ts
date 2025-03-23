@@ -19,6 +19,8 @@ class FavoriteService {
 
     async getUserFavorites() {
         const response = await this.http.get(`/favorites`);
+        console.log("gggg", response.data);
+        
         return response.data;
     }
 

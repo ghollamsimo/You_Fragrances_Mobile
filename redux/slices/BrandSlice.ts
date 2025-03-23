@@ -38,7 +38,6 @@ const brandSlice = createSlice({
             .addCase(index.fulfilled, (state, action: PayloadAction<any>) => {
                 state.loading = false;
                 state.brandData = action.payload;
-                console.log('hanana', action.payload)
                 state.errorMessage = null;
             })
             .addCase(index.rejected, (state, action: PayloadAction<string | undefined>) => {

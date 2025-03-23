@@ -8,14 +8,18 @@ interface CardProps {
   color: string;
   icon: string;
   navigateTo?: string;
+  params?: any; 
+  onPress?: () => void;
 }
 
-const Card: React.FC<CardProps> = ({ title, description, color, icon, navigateTo }) => {
+const Card: React.FC<CardProps> = ({ title, description, color, icon, navigateTo, params, onPress }) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
-    if (navigateTo) {
-      navigation.navigate(navigateTo);
+    if (onPress) {
+      onPress(); 
+    } else if (navigateTo) {
+      navigation.navigate(navigateTo, params); 
     }
   };
 

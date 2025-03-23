@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import { View, StyleSheet, TouchableOpacity , Text} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, StyleSheet, TouchableOpacity, Text, Alert, AppState} from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
@@ -14,6 +14,11 @@ import ReviewScreen from "./screens/ReviewScreen";
 import LoginScreen from "./screens/auth/LoginScreen";
 import HistoryScreen from "./screens/HistoryScreen";
 import ScanModal from "./modals/ScanModal";
+import AllBrandScreen from "./screens/AllBrandScreen";
+import AllPerfumeScreen from "./screens/AllPerfumesScreen";
+import {AppDispatch, RootState} from "./redux/Store";
+import {useDispatch, useSelector} from "react-redux";
+import {checkTokenExpiration, startTokenChecker, stopTokenChecker} from "./helper/authHelper";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -50,7 +55,7 @@ const CustomTabBarButton = ({ children, onPress }) => (
 
 const TabNavigator = () => {
     const [scanModal, setScanModal] = useState(false);
-
+    const token = useSelector((state: RootState)=> state.auth.token)
     return (
         <>
             <Tab.Navigator
@@ -81,7 +86,7 @@ const TabNavigator = () => {
             >
                 <Tab.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
                 <Tab.Screen name="PerHelper" component={PerfumeHelperScreen} options={{ headerShown: false }} />
-
+                {token ? (
                 <Tab.Screen
                     name="scan"
                     component={() => null}
@@ -95,6 +100,22 @@ const TabNavigator = () => {
                         tabBarLabel: () => null,
                     }}
                 />
+                ): (
+                    <Tab.Screen
+                        name="scan"
+                        component={() => null}
+                        options={{
+                            headerShown: false,
+                            tabBarButton: ({ accessibilityState }) => (
+                                <CustomTabBarButton onPress={() => Alert.alert("Access Denied",
+                                    "You need to be logged in to use this feature.",)}>
+                                    <Ionicons name="camera-outline" color="#FFFFFF" size={30} />
+                                </CustomTabBarButton>
+                            ),
+                            tabBarLabel: () => null,
+                        }}
+                    />
+                )}
 
                 <Tab.Screen name="History" component={HistoryScreen} options={{ headerShown: false }} />
                 <Tab.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
@@ -106,14 +127,32 @@ const TabNavigator = () => {
 };
 
 export default function App() {
+    useEffect(() => {
+        const appStateListener = AppState.addEventListener("change", (nextAppState) => {
+            if (nextAppState === "active") {
+                startTokenChecker();
+            } else {
+                stopTokenChecker();
+            }
+        });
+
+        startTokenChecker();
+
+        return () => {
+            appStateListener.remove();
+            stopTokenChecker();
+        };
+    }, []);
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Main" component={TabNavigator} />
-        <Stack.Screen name="SearchScreen" component={SearchScreen} />
-        <Stack.Screen name="PerfumeDetails" component={PerfumeDetails} />
-        <Stack.Screen name="knowledgeScreen" component={knowledgeScreen} />
-        <Stack.Screen name="ReviewScreen" component={ReviewScreen} />
+          <Stack.Screen name="Main" component={TabNavigator} />
+          <Stack.Screen name="SearchScreen" component={SearchScreen} />
+          <Stack.Screen name="PerfumeDetails" component={PerfumeDetails} />
+          <Stack.Screen name="AllBrands" component={AllBrandScreen} />
+          <Stack.Screen name="AllPerfumes" component={AllPerfumeScreen} />
+          <Stack.Screen name="knowledgeScreen" component={knowledgeScreen} />
+          <Stack.Screen name="ReviewScreen" component={ReviewScreen} />
 
       </Stack.Navigator>
     </NavigationContainer>

@@ -10,7 +10,7 @@ const PopularPerfume = ({perfumes}) => {
       <View style={styles.popular_section}>
         <Text style={styles.title}>Popular Perfume</Text>
 
-        <TouchableOpacity style={styles.proBadge}>
+        <TouchableOpacity onPress={() => navigation.navigate('AllPerfumes', {perfumes: perfumes})} style={styles.proBadge}>
           <Text style={styles.proBadge_text}>See All</Text>
         </TouchableOpacity>
       </View>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Text, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, ActivityIndicator, Alert } from 'react-native';
 import Header from '../components/Header';
 import Card from '../components/Card';
 import PopularBrands from '../components/PopularBrands';
@@ -9,9 +9,12 @@ import { AppDispatch, RootState } from "../redux/Store";
 import { index } from "../redux/slices/BrandSlice";
 import { indexPerfumes } from "../redux/slices/PerfumeSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import ScanModal from '../modals/ScanModal';
 
 const HomeScreen: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const [scanModal, setScanModal] = useState(false);
+    const token = useSelector((state: RootState)=> state.auth.token)
   const brands = useSelector((state: RootState) => state.brands.brandData);
   const perfumes = useSelector((state: RootState) => state.perfumes.perfumesData);
   const [loading, setLoading] = useState(true);
@@ -41,7 +44,7 @@ const HomeScreen: React.FC = () => {
         <Header
             title="HomeScreen"
             avatarUrl="https://static.wikia.nocookie.net/gorillatag/images/3/33/SnowOwlMaskSprite.png/revision/latest/thumbnail/width/360/height/450?cb=20230127222407'"
-            showProBadge={true}
+            showProBadge={false}
         />
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.explore}>
@@ -53,13 +56,18 @@ const HomeScreen: React.FC = () => {
                 description="Got a Fragrance query? AI will get you sorted."
                 color="#627890"
                 icon="✨"
+                navigateTo="PerHelper"
+
             />
             <Card
                 title="Brand Lab"
-                description="Check if a Brands and follow them."
+                description="Check if a Brand and follow them."
                 color="#EDD7C9"
                 icon="🖌️"
+                navigateTo="AllBrands"
+                params={{ brands: brands }}
             />
+
           </View>
           <View style={styles.section}>
             <Card
@@ -69,16 +77,34 @@ const HomeScreen: React.FC = () => {
                 icon="🔍"
                 navigateTo="SearchScreen"
             />
-            <Card
+            {token ? (
+                <Card
                 title="Scanner"
                 description="Analyze a perfume by photo or barcode."
                 color="#25354F"
                 icon="📷"
+                onPress={() => setScanModal(true)}
+              />
+            ): (
+              <Card
+              title="Scanner"
+              description="Analyze a perfume by photo or barcode."
+              color="#25354F"
+              icon="📷"
+              onPress={() =>  Alert.alert("Access Denied",
+                                                  "You need to be logged in to use this feature.",) }
             />
+            )}
+       
+
           </View>
           <PopularBrands brands={brands} />
           <PopularPerfume perfumes={perfumes} />
         </ScrollView>
+        {scanModal && <ScanModal modalVisible={scanModal} setModalVisible={setScanModal} />}
+
+
+
       </View>
   );
 };

@@ -4,6 +4,7 @@ import {createAsyncThunk, createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {LoginField, RegisterField} from "../../constant";
 import {indexPerfumes} from "./PerfumeSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {saveLoginTime, stopTokenChecker} from "../../helper/authHelper";
 
 export const register = createAsyncThunk(
     "users/store",
@@ -50,6 +51,13 @@ export const fetchFollowedBrands = createAsyncThunk(
     }
 )
 
+export const logout = createAsyncThunk('auth/logout', async () => {
+    stopTokenChecker();
+    await AsyncStorage.removeItem("token");
+    await AsyncStorage.removeItem("loginTime");
+    return null;
+});
+
 const authSlice = createSlice({
     name: 'auth',
     initialState,
@@ -86,6 +94,7 @@ const authSlice = createSlice({
                 if (action.payload && action.payload.token) {
                     state.token = action.payload.token;
                     AsyncStorage.setItem('token', action.payload.token);
+                    saveLoginTime();
                 } else {
                     console.error("Token is missing in the response:", action.payload);
                 }
@@ -96,12 +105,20 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.errorMessage = action.payload || "login failed";
             })
+            .addCase(logout.fulfilled, (state) => {
+                state.token = null;
+                state.errorMessage = null;
+            })
             .addCase(followBrand.pending, (state) => {
                 state.loading = true;
             })
             .addCase(followBrand.fulfilled, (state, action: PayloadAction<any>) => {
                 state.loading = false;
-                state.followBrandData = action.payload;
+                if (Array.isArray(action.payload)) {
+                    state.followBrandData = action.payload;
+                } else {
+                    state.followBrandData = [action.payload];
+                }
                 state.errorMessage = null;
             })
 

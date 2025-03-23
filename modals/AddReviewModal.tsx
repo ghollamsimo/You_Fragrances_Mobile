@@ -43,31 +43,26 @@ const ToggleButton = ({ isEnabled = true, setIsEnabled = false, label }) => {
     )
 }
 
-const AddReviewModal = ({ modalVisible, setModalVisible, product }) => {
+const AddReviewModal = ({ product , perfumeName, brandName, perfumeImage,modalVisible, setModalVisible }) => {
     const dispatch = useDispatch<AppDispatch>();
-    const selectedPerfume = useSelector((state: RootState) => state.perfumes.selectedPerfume);
     const [rating, setRating] = useState(0);
     const [recommend, setRecommend] = useState(false);
     const [review, setReview] = useState('');
 
     const handleSubmit = async () => {
         try {
-            const data = {
-                rating,
-                recommended: recommend,
-                comment: review,
-            };
-
-            const response = await dispatch(addReview({ perfumeId: product._id, data }));
-
-            if (response) {
-                Alert.alert("Review submitted successfully");
+            const data = { rating, recommended: recommend, comment: review };
+            if(!data){
+                Alert.alert("All fields required");
             }
-
+            await dispatch(addReview({ perfumeId: product, data })).unwrap();
+            dispatch(getReviewsByPerfume(product))
+            Alert.alert("Review submitted successfully");
             setModalVisible(false);
+                
         } catch (error) {
             console.error("Error submitting review:", error);
-            alert("Failed to submit the review. Please try again.");
+            Alert.alert("Failed to submit the review. Please try again.");
         }
     };
 
@@ -91,20 +86,18 @@ const AddReviewModal = ({ modalVisible, setModalVisible, product }) => {
                             </View>
 
                             <View style={styles.productCard}>
-                                {product?.image && typeof product.image === "string" && (
                                     <Image
-                                        source={{ uri: product.image.replace('127.0.0.1', '192.168.1.116') }}
+                                        source={{ uri: perfumeImage.replace('127.0.0.1', '192.168.1.116') }}
                                         style={styles.productImage}
                                         resizeMode="contain"
                                     />
-                                )}
 
 
                                 <View style={styles.productInfo}>
-                                    <Text style={styles.productName}>{typeof product.name === "string" ? product.name : JSON.stringify(product.name)}</Text>
+                                    <Text style={styles.productName}>{perfumeName}</Text>
 
                                     <Text style={styles.productBrand}>
-                                        {product?.brand.name ? String(product.brand.name) : "No Brand Info"}
+                                        {brandName}
                                     </Text>
                                 </View>
                             </View>

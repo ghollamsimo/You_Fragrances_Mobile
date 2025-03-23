@@ -50,16 +50,6 @@ const SearchScreen: React.FC = () => {
               <Text style={styles.ratingText}>{item.averageRating}/5</Text>
             </View>
 
-            <TouchableOpacity
-                style={styles.favoriteButton}
-                onPress={() => toggleFavorite(item._id)}
-            >
-              <Ionicons
-                  name={isFavorite ? "heart" : "heart-outline"}
-                  size={24}
-                  color={isFavorite ? "#ccc" : "#ccc"}
-              />
-            </TouchableOpacity>
           </View>
         </TouchableOpacity>
     );
